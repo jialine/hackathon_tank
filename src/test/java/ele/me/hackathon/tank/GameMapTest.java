@@ -7,7 +7,7 @@ import org.junit.Test;
 import java.io.IOException;
 import java.io.InputStream;
 
-import static junit.framework.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 /**
  * Created by lanjiangang on 01/11/2017.
@@ -25,10 +25,39 @@ public class GameMapTest {
 
     }
 
+    int[][] pixels = new int[][] {
+            {1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ,1, 1, 1, 1, 1, 1 ,1, 1 },
+            {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+            {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+            {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+            {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+            {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+            {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+            {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+            {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+            {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+            {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+            {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+            {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+            {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+            {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+            {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+            {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+            {1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ,1, 1, 1, 1, 1, 1 ,1, 1 }
+    };
+
     @Test
     public void testLoadMapFromFile() throws IOException {
         InputStream in = this.getClass().getResourceAsStream("/samplemap.txt");
         GameMap map = GameMap.load(in);
         assertEquals(18, map.size());
+        assertPixels(pixels, map.getPixels());
+    }
+
+    private void assertPixels(int[][] expected, int[][] actual) {
+        assertEquals(expected.length, actual.length);
+        for (int i = 0; i < expected.length; i++){
+            assertArrayEquals(expected[i], actual[i]);
+        }
     }
 }

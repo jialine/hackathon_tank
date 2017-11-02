@@ -68,4 +68,8 @@ public class GameMap {
     public int size() {
         return size;
     }
+
+    public int[][] getPixels() {
+        return pixels;
+    }
 }

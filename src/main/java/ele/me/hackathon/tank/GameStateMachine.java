@@ -8,6 +8,11 @@ public class GameStateMachine {
     private List<Tank> tanks;
     private List<PlayOrder> orders;
 
+    public GameStateMachine(List<Tank> tanks, GameMap map) {
+        this.tanks = tanks;
+        this.map = map;
+    }
+
     public void newOrders(List<PlayOrder> orders) throws InvalidOrder {
         validate(orders);
         evaluate(orders);
@@ -17,7 +22,7 @@ public class GameStateMachine {
 
     }
 
-    public void validate(List<PlayOrder> orders) throws InvalidOrder {
+    private void validate(List<PlayOrder> orders) throws InvalidOrder {
 
     }
 }
