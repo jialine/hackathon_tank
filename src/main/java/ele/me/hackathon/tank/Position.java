@@ -4,8 +4,8 @@ package ele.me.hackathon.tank;
  * Created by lanjiangang on 27/10/2017.
  */
 public class Position {
-    int x;
-    int y;
+    private int x;
+    private int y;
 
     public Position(int x, int y) {
         this.x = x;
@@ -28,7 +28,7 @@ public class Position {
                               (2,1)
 
      */
-    public Position move(Direction dir) {
+    public Position moveOneStep(Direction dir) {
         switch (dir) {
         case UP:
             return new Position(x - 1 , y);

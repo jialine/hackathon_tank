@@ -9,6 +9,6 @@ public class Shell extends MovableObject {
     }
 
     public void turnTo(Direction dir) {
-        throw new UnsupportedOperationException("Shell can't turn its direction");
+        throw new UnsupportedOperationException("Shell can't change its direction");
     }
 }

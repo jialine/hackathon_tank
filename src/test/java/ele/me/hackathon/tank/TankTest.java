@@ -14,7 +14,7 @@ public class TankTest {
 
     @Before
     public void setup() {
-        tank = new Tank(new Position(1, 1), Direction.DOWN, 1);
+        tank = new Tank(new Position(1, 1), Direction.DOWN, 1, 2);
     }
 
     @Test
@@ -43,5 +43,25 @@ public class TankTest {
 
         tank.turnTo(Direction.LEFT);
         assertArrayEquals(new Position[] { new Position(1, 0) }, tank.evaluateMoveTrack());
+    }
+
+
+    @Test
+    public void testFireAt(){
+        Shell shell = tank.fireAt(Direction.RIGHT);
+        assertEquals("The shell shall appear at the next position at the fire direction", tank.getPos().moveOneStep(Direction.RIGHT), shell.getPos());
+        assertEquals(Direction.RIGHT, shell.getDir());
+
+        //move the shell one step
+        shell.moveTo(shell.getPos().moveOneStep(Direction.RIGHT));
+        Shell secondShell = tank.fireAt(Direction.LEFT);
+        assertEquals("The previous shell still exists", shell, secondShell);
+
+        //destroy the shell and fire again, then we shall get a new shell
+        shell.destroyed();
+        Shell thirdShell = tank.fireAt(Direction.DOWN);
+        assertEquals("The shell shall appears at the next position at the fire direction", tank.getPos().moveOneStep(Direction.DOWN), thirdShell.getPos());
+        assertEquals(Direction.DOWN, thirdShell.getDir());
+
     }
 }
