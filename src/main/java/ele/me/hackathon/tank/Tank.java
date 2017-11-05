@@ -4,14 +4,12 @@ package ele.me.hackathon.tank;
  * Created by lanjiangang on 27/10/2017.
  */
 public class Tank extends  MovableObject {
-    private int id;
     private int shellSpeed;
     private Shell shell;
     private int hp;
 
     public Tank(int id, Position p, Direction dir, int speed, int shellSpeed, int hp) {
-       super(p, dir, speed);
-        this.id = id;
+        super(id, p, dir, speed);
         this.shellSpeed = shellSpeed;
         this.hp = hp;
     }
@@ -23,14 +21,10 @@ public class Tank extends  MovableObject {
      */
     public Shell fireAt(Direction dir) {
         if(shell == null || shell.isDestroyed()) {
-            shell =  new Shell(getPos().moveOneStep(dir), dir, shellSpeed);
+            shell =  new Shell(getId(), getPos().moveOneStep(dir), dir, shellSpeed);
         }
 
         return shell;
-    }
-
-    public int getId() {
-        return id;
     }
 
     public int getHp() {
@@ -43,19 +37,21 @@ public class Tank extends  MovableObject {
             return true;
         if (o == null || getClass() != o.getClass())
             return false;
-        if (!super.equals(o))
-            return false;
-
         Tank tank = (Tank) o;
 
-        return id == tank.id;
+        return getId() == tank.getId();
 
     }
 
     @Override
     public int hashCode() {
-        int result = super.hashCode();
-        result = 31 * result + id;
-        return result;
+        return getId();
     }
+
+    public void hit() {
+        if(--hp <= 0) {
+            destroyed();
+        }
+    }
+
 }

@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 public class GameStateMachine {
     private GameMap map;
     private Map<Integer, Tank> tanks;
-    private List<Shell> shells  = new LinkedList<>();
+    private List<Shell> shells = new LinkedList<>();
 
     private List<TankOrder> turnDirOrders = new LinkedList<TankOrder>();
     private List<TankOrder> moveOrders = new LinkedList<TankOrder>();
@@ -37,7 +37,34 @@ public class GameStateMachine {
     }
 
     private void evaluateShells() {
+        shells.forEach(shell -> {
+            Position[] positions = shell.evaluateMoveTrack();
+            for (Position pos : positions) {
+                if (map.isBarrier(pos)) {
+                    shell.destroyed();
+                    break;
+                } else {
+                    List<Tank> tanksAt = getTankAt(pos);
+                    if (tanksAt.size() > 0) {
+                        tanksAt.forEach(Tank::destroyed);
+                        shell.destroyed();
+                        break;
+                    }
+                }
+                shell.moveTo(pos);
+            }
+        });
 
+        List<Tank> destroyedTanks = tanks.values().stream().filter(t -> t.isDestroyed()).collect(Collectors.toCollection(() -> new LinkedList<>()));
+        destroyedTanks.forEach(t -> tanks.remove(t.getId()));
+
+        shells.removeIf(shell -> shell.isDestroyed());
+
+    }
+
+    private List<Tank> getTankAt(Position pos) {
+        List<Tank> tanksAt = tanks.values().stream().filter(t -> t.getPos().equals(pos)).collect(Collectors.toCollection(() -> new LinkedList<>()));
+        return tanksAt;
     }
 
     private void classicOrders(List<TankOrder> orders, List<TankOrder> fireOrders, List<TankOrder> turnDirOrders, List<TankOrder> moveOrders) {
@@ -99,7 +126,7 @@ public class GameStateMachine {
     }
 
     private boolean isValidateOder(TankOrder order) {
-        if (tanks.get(order.getTankId()).isDestroyed())
+        if (!tanks.containsKey(order.getTankId()) ||  tanks.get(order.getTankId()).isDestroyed())
             return false;
 
         return true;
@@ -134,7 +161,10 @@ public class GameStateMachine {
 
             //check if tank is destroyed by shells
             List<Tank> destroyedTanks = checkShells(i, moveTracks);
-            destroyedTanks.forEach(t -> result.remove(t));
+            destroyedTanks.forEach(t -> {
+                result.remove(t);
+                moveTracks.remove(t);
+            });
 
             //record latest result
             moveTracks.forEach((tank, track) -> {
@@ -142,10 +172,9 @@ public class GameStateMachine {
             });
 
             //remove tank which already evaluates all its movements.
-
-            for(Iterator<Tank> itr = moveTracks.keySet().iterator(); itr.hasNext(); ) {
+            for (Iterator<Tank> itr = moveTracks.keySet().iterator(); itr.hasNext(); ) {
                 Tank t = itr.next();
-                if(moveTracks.get(t).length - 1 == i) {
+                if (moveTracks.get(t).length - 1 == i) {
                     itr.remove();
                 }
             }
@@ -156,20 +185,19 @@ public class GameStateMachine {
         result.forEach((tank, pos) -> tank.moveTo(pos));
     }
 
-        private List<Tank> checkShells(int i, Map<Tank, Position[]> moveTracks) {
-            List<Tank> tankList = new LinkedList<>();
-            for(Tank t : moveTracks.keySet()) {
-                List<Shell> shellList = getShellAt(moveTracks.get(t)[i]);
-                if (shellList.size() > 0) {
-                    shellList.forEach(s -> s.destroyed());
-                }
-                if (shellList.size() > t.getHp()) {
-                    t.destroyed();
-                    moveTracks.remove(t.getId());
-                    tankList.add(t);
-                }
+    private List<Tank> checkShells(int i, Map<Tank, Position[]> moveTracks) {
+        List<Tank> tankList = new LinkedList<>();
+        for (Tank t : moveTracks.keySet()) {
+            List<Shell> shellList = getShellAt(moveTracks.get(t)[i]);
+
+            shellList.forEach(s -> s.destroyed());
+
+            if (shellList.size() >= t.getHp()) {
+                t.destroyed();
+                tankList.add(t);
             }
-            return tankList;
+        }
+        return tankList;
     }
 
     private List<Tank> checkBarrier(int i, Map<Tank, Position[]> moveTracks) {
@@ -197,12 +225,8 @@ public class GameStateMachine {
     }
 
     private List<Shell> getShellAt(Position position) {
-        List<Shell> shellList = new LinkedList<Shell>();
-        for (Shell shell : shells) {
-            if (!shell.isDestroyed() && shell.getPos().equals(position)) {
-                shellList.add(shell);
-            }
-        }
+        List<Shell> shellList = shells.stream().filter(shell -> !shell.isDestroyed() && shell.getPos().equals(position))
+                .collect(Collectors.toCollection(() -> new LinkedList<Shell>()));
         return shellList;
     }
 
@@ -211,12 +235,11 @@ public class GameStateMachine {
     }
 
     public List<Tank> getLeftTanks() {
-        List<Tank> left = new LinkedList<Tank>();
-        for (Tank t : tanks.values()) {
-            if (!t.isDestroyed()) {
-                left.add(t);
-            }
-        }
+        List<Tank> left = tanks.values().stream().filter(t -> !t.isDestroyed()).collect(Collectors.toCollection(() -> new LinkedList<Tank>()));
         return left;
+    }
+
+    protected List<Shell> getShells() {
+        return shells;
     }
 }

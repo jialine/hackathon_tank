@@ -4,16 +4,18 @@ package ele.me.hackathon.tank;
  * Created by lanjiangang on 03/11/2017.
  */
 public class MovableObject {
+    private int id;
     private Position pos;
     private Direction dir;
     private int speed;
 
     private boolean destroyed = false;
 
-    public MovableObject(Position pos, Direction dir, int speed) {
+    public MovableObject(int id, Position pos, Direction dir, int speed) {
         this.pos = pos;
         this.dir = dir;
         this.speed = speed;
+        this.id = id;
     }
 
     public void turnTo(Direction dir) {
@@ -32,8 +34,10 @@ public class MovableObject {
      */
     public Position[] evaluateMoveTrack() {
         Position[] track = new Position[speed];
+        Position prePos = pos;
         for(int i = 0; i < speed; i++) {
-            track[i] = pos.moveOneStep(dir);
+            track[i] = prePos.moveOneStep(dir);
+            prePos = track[i];
         }
         return track;
     }
@@ -62,6 +66,10 @@ public class MovableObject {
         return dir;
     }
 
+    public int getId() {
+        return id;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o)
@@ -88,5 +96,9 @@ public class MovableObject {
         result = 31 * result + speed;
         result = 31 * result + (destroyed ? 1 : 0);
         return result;
+    }
+
+    protected void setSpeed(int speed) {
+        this.speed = speed;
     }
 }
