@@ -14,7 +14,7 @@ public class TankTest {
 
     @Before
     public void setup() {
-        tank = new Tank(new Position(1, 1), Direction.DOWN, 1, 2);
+        tank = new Tank(0, new Position(1, 1), Direction.DOWN, 1, 2, 1);
     }
 
     @Test
