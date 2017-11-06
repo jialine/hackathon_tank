@@ -54,4 +54,7 @@ public class Tank extends  MovableObject {
         }
     }
 
+    public boolean fired() {
+        return (shell != null && !shell.isDestroyed());
+    }
 }

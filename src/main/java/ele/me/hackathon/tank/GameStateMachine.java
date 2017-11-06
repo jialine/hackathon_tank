@@ -29,14 +29,14 @@ public class GameStateMachine {
     }
 
     private void evaluate(List<TankOrder> orders) {
-        evaluateShells();
+        evaluateShellsMovement();
         classicOrders(orders, fireOrders, turnDirOrders, moveOrders);
         evaluateFireActions(fireOrders);
         evaluateTurnDirectionActions(turnDirOrders);
         evaluateMoveActions(moveOrders);
     }
 
-    private void evaluateShells() {
+    private void evaluateShellsMovement() {
         shells.forEach(shell -> {
             Position[] positions = shell.evaluateMoveTrack();
             for (Position pos : positions) {
@@ -44,10 +44,10 @@ public class GameStateMachine {
                     shell.destroyed();
                     break;
                 } else {
-                    List<Tank> tanksAt = getTankAt(pos);
-                    if (tanksAt.size() > 0) {
-                        tanksAt.forEach(Tank::destroyed);
+                    Tank tankAt = getTankAt(pos);
+                    if (tankAt != null) {
                         shell.destroyed();
+                        tankAt.hit();
                         break;
                     }
                 }
@@ -55,16 +55,27 @@ public class GameStateMachine {
             }
         });
 
+        clearDestroyedTargets();
+
+    }
+
+    private void clearDestroyedTargets() {
         List<Tank> destroyedTanks = tanks.values().stream().filter(t -> t.isDestroyed()).collect(Collectors.toCollection(() -> new LinkedList<>()));
         destroyedTanks.forEach(t -> tanks.remove(t.getId()));
 
         shells.removeIf(shell -> shell.isDestroyed());
-
     }
 
-    private List<Tank> getTankAt(Position pos) {
+    private Tank getTankAt(Position pos) {
         List<Tank> tanksAt = tanks.values().stream().filter(t -> t.getPos().equals(pos)).collect(Collectors.toCollection(() -> new LinkedList<>()));
-        return tanksAt;
+        if(tanksAt.size() > 1) {
+            String msg = "Found more than one tank in same position: ";
+            for(Tank t: tanksAt) {
+                msg += t;
+            }
+            throw new InvalidState(msg);
+        }
+        return tanksAt.size() == 1 ? tanksAt.get(0) : null;
     }
 
     private void classicOrders(List<TankOrder> orders, List<TankOrder> fireOrders, List<TankOrder> turnDirOrders, List<TankOrder> moveOrders) {
@@ -114,6 +125,30 @@ public class GameStateMachine {
 
     private void evaluateFireActions(List<TankOrder> orders) {
 
+        List<Shell> newShells  = new LinkedList<>();
+        for(TankOrder order : orders) {
+            if (!isValidateOder(order))
+                continue;
+
+            Shell shell = tanks.get(order.getTankId()).fireAt(order.getParameter());
+            newShells.add(shell);
+        }
+        for(Shell shell : newShells) {
+            if(map.isBarrier(shell.getPos())) {
+                shell.destroyed();
+                continue;
+            }
+            Tank tankAt = getTankAt(shell.getPos());
+            if(tankAt != null) {
+                tankAt.hit();
+                shell.destroyed();
+            }
+        }
+
+        newShells.removeIf(Shell::isDestroyed);
+        getShells().addAll(newShells);
+
+        clearDestroyedTargets();
     }
 
     private void evaluateTurnDirectionActions(List<TankOrder> orders) {
@@ -179,6 +214,7 @@ public class GameStateMachine {
                 }
             }
 
+            clearDestroyedTargets();
         }
 
         //apply the result
