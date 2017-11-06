@@ -21,6 +21,8 @@ public class GameMap {
         return pixels[pos.getX()][pos.getY()] == 1;
     }
 
+
+
     public static GameMap load(InputStream in) throws IOException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(in));
         int size = readSize(reader);

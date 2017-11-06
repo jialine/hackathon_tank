@@ -10,25 +10,12 @@ public class GameStateMachine {
     private Map<Integer, Tank> tanks;
     private List<Shell> shells = new LinkedList<>();
 
-    private List<TankOrder> turnDirOrders = new LinkedList<TankOrder>();
-    private List<TankOrder> moveOrders = new LinkedList<TankOrder>();
-    private List<TankOrder> fireOrders = new LinkedList<TankOrder>();
-
     public GameStateMachine(Map<Integer, Tank> tanks, GameMap map) {
         this.tanks = tanks;
         this.map = map;
     }
 
     public void newOrders(List<TankOrder> orders) throws InvalidOrder {
-        validate(orders);
-        evaluate(orders);
-    }
-
-    private void validate(List<TankOrder> orders) throws InvalidOrder {
-
-    }
-
-    private void evaluate(List<TankOrder> orders) {
         evaluateShellsMovement();
         evaluateFireActions(filtOrder(orders, "fire"));
         evaluateTurnDirectionActions(filtOrder(orders, "turnTo"));
@@ -55,12 +42,6 @@ public class GameStateMachine {
         });
 
         clearDestroyedTargets();
-
-    }
-
-
-    private LinkedList<TankOrder> filtOrder(List<TankOrder> orders, String orderName) {
-        return orders.stream().filter(o -> orderName.equals(o.getOrder())  && isValidateOder(o)).collect(Collectors.toCollection(() -> new LinkedList<>()));
     }
 
     private void clearDestroyedTargets() {
@@ -70,16 +51,8 @@ public class GameStateMachine {
         shells.removeIf(shell -> shell.isDestroyed());
     }
 
-    private Tank getTankAt(Position pos) {
-        List<Tank> tanksAt = tanks.values().stream().filter(t -> t.getPos().equals(pos)).collect(Collectors.toCollection(() -> new LinkedList<>()));
-        if(tanksAt.size() > 1) {
-            String msg = "Found more than one tank in same position: ";
-            for(Tank t: tanksAt) {
-                msg += t;
-            }
-            throw new InvalidState(msg);
-        }
-        return tanksAt.size() == 1 ? tanksAt.get(0) : null;
+    private LinkedList<TankOrder> filtOrder(List<TankOrder> orders, String orderName) {
+        return orders.stream().filter(o -> orderName.equals(o.getOrder())  && isValidateOder(o)).collect(Collectors.toCollection(() -> new LinkedList<>()));
     }
 
     private void evaluateFireActions(List<TankOrder> orders) {
@@ -109,6 +82,20 @@ public class GameStateMachine {
 
         clearDestroyedTargets();
     }
+
+
+    private Tank getTankAt(Position pos) {
+        List<Tank> tanksAt = tanks.values().stream().filter(t -> t.getPos().equals(pos)).collect(Collectors.toCollection(() -> new LinkedList<>()));
+        if(tanksAt.size() > 1) {
+            String msg = "Found more than one tank in same position: ";
+            for(Tank t: tanksAt) {
+                msg += t;
+            }
+            throw new InvalidState(msg);
+        }
+        return tanksAt.size() == 1 ? tanksAt.get(0) : null;
+    }
+
 
     private void evaluateTurnDirectionActions(List<TankOrder> orders) {
         for (TankOrder order : orders) {
