@@ -168,7 +168,7 @@ public class GameStateMachine {
     }
 
     private void evaluateMoveActions(List<TankOrder> orders) {
-        Map<Tank, Position[]> moveTracks = new LinkedHashMap<Tank, Position[]>(tanks.size());
+        Map<Tank, Position[]> moveTracks = new LinkedHashMap<>(tanks.size());
         orders.forEach(o -> {
             if (isValidateOder(o)) {
                 moveTracks.put(tanks.get(o.getTankId()), tanks.get(o.getTankId()).evaluateMoveTrack());
@@ -245,10 +245,16 @@ public class GameStateMachine {
     }
 
     private List<Tank> checkOverlap(final int i, Map<Tank, Position[]> moveTracks) {
-        List<Position> oneMove = new LinkedList<Position>();
+        List<Position> oneMove = new LinkedList<>();
         moveTracks.forEach((tank, track) -> {
             oneMove.add(track[i]);
         });
+
+        //add positions of standstill tanks
+        List<Position> stillTanksPos = getTanks().values().stream().filter(t -> !moveTracks.containsKey(t)).map(t -> t.getPos())
+                .collect(Collectors.toCollection(() -> new LinkedList<Position>()));
+        oneMove.addAll(stillTanksPos);
+
 
         List<Tank> tankList = moveTracks.keySet().stream().filter(t -> Collections.frequency(oneMove, moveTracks.get(t)[i]) > 1)
                 .collect(Collectors.toCollection(() -> new LinkedList<>()));

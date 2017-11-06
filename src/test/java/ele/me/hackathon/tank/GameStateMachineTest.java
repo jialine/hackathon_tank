@@ -103,6 +103,42 @@ public class GameStateMachineTest {
     }
 
     @Test
+    public  void testMoveToAnotherTanksPrePos() throws InvalidOrder {
+        tankA.turnTo(Direction.DOWN);
+        tankA.moveTo(new Position(1, 1));
+
+        tankB.turnTo(Direction.LEFT);
+        tankB.moveTo(new Position(1, 2));
+
+        List<TankOrder> orders = new LinkedList<TankOrder>();
+        orders.add(new TankOrder(1, "move", Direction.UP));
+        orders.add(new TankOrder(2, "move", Direction.UP));
+
+        stateMachine.newOrders(orders);
+
+        assertEquals(new Position(2, 1), tankA.getPos());
+        assertEquals(new Position(1, 1), tankB.getPos());
+    }
+
+    @Test
+    public  void testMoveToAnotherTanksPos() throws InvalidOrder {
+        tankA.turnTo(Direction.DOWN);
+        tankA.moveTo(new Position(1, 1));
+
+        tankB.turnTo(Direction.LEFT);
+        tankB.moveTo(new Position(1, 2));
+
+        List<TankOrder> orders = new LinkedList<TankOrder>();
+        orders.add(new TankOrder(2, "move", Direction.UP));
+
+        stateMachine.newOrders(orders);
+
+        assertEquals(new Position(1, 1), tankA.getPos());
+        assertEquals(new Position(1, 2), tankB.getPos());
+    }
+
+
+    @Test
     public void testMoveToShell() throws InvalidOrder {
         List<TankOrder> orders = new LinkedList<TankOrder>();
         orders.add(new TankOrder(1, "move", Direction.DOWN));
