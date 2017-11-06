@@ -5,14 +5,9 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * Created by lanjiangang on 01/11/2017.
@@ -39,6 +34,8 @@ public class GameStateMachineTest {
         tanks.put(2, tankB);
 
         stateMachine = new GameStateMachine(tanks, map);
+        stateMachine.setPlayATanks(Arrays.asList(new Integer[] { 1 }));
+        stateMachine.setPlayBTanks(Arrays.asList(new Integer[] { 2 }));
     }
 
     @Test
@@ -201,5 +198,20 @@ public class GameStateMachineTest {
         assertTrue(shellA.isDestroyed());
         assertTrue(shellB.isDestroyed());
 
+    }
+
+    @Test
+    public void testGetFlag() throws InvalidOrder {
+        Position flagPos = stateMachine.generateFlag();
+        tankA.moveTo(flagPos.moveOneStep(Direction.DOWN));
+        tankA.turnTo(Direction.UP);
+
+        List<TankOrder> orders = new LinkedList<>();
+        orders.add(new TankOrder(1, "move", Direction.UP));
+
+        stateMachine.newOrders(orders);
+
+        assertEquals("PlayA got one flag.", 1, stateMachine.getFlagNoByPlayerA());
+        assertEquals("PlayB got none flag.", 0, stateMachine.getFlagNoByPlayerB());
     }
 }

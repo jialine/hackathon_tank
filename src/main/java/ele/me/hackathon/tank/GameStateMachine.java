@@ -9,6 +9,12 @@ public class GameStateMachine {
     private GameMap map;
     private Map<Integer, Tank> tanks;
     private List<Shell> shells = new LinkedList<>();
+    private List<Integer> PlayATanks;
+    private List<Integer> PlayBTanks;
+    private int flagNoByPlayerA = 0;
+    private int flagNoByPlayerB = 0;
+    private boolean flagExisting  = false;
+    private Position flagPos;
 
     public GameStateMachine(Map<Integer, Tank> tanks, GameMap map) {
         this.tanks = tanks;
@@ -152,7 +158,11 @@ public class GameStateMachine {
                 result.put(tank, track[finalI]);
             });
 
+            //check if any tank will get the flag
+            checkFlag(result);
+
             //remove tank which already evaluates all its movements.
+            //this will happen on condition that tanks have different speed.
             for (Iterator<Tank> itr = moveTracks.keySet().iterator(); itr.hasNext(); ) {
                 Tank t = itr.next();
                 if (moveTracks.get(t).length - 1 == i) {
@@ -165,6 +175,23 @@ public class GameStateMachine {
 
         //apply the result
         result.forEach((tank, pos) -> tank.moveTo(pos));
+    }
+
+    private void checkFlag(Map<Tank, Position> result) {
+        if(flagExisting) {
+            List<Map.Entry<Tank, Position>> tanks = result.entrySet().stream().filter(e -> e.getValue().equals(flagPos)).collect(Collectors.toCollection(() -> new LinkedList<>()));
+            if(tanks.size() > 0) {
+                flagExisting = false;
+                if(getPlayATanks().contains(tanks.get(0).getKey().getId())) {
+                    System.out.println("playA got the flag");
+                    flagNoByPlayerA++;
+                }
+                else if(getPlayBTanks().contains(tanks.get(0).getKey().getId())) {
+                    System.out.println("playA got the flag");
+                    flagNoByPlayerB++;
+                }
+            }
+        }
     }
 
     private List<Tank> checkShells(int i, Map<Tank, Position[]> moveTracks) {
@@ -226,5 +253,35 @@ public class GameStateMachine {
 
     protected List<Shell> getShells() {
         return shells;
+    }
+
+    public void setPlayATanks(List<Integer> playATanks) {
+        PlayATanks = playATanks;
+    }
+
+    public void setPlayBTanks(List<Integer> playBTanks) {
+        PlayBTanks = playBTanks;
+    }
+
+    public List<Integer> getPlayBTanks() {
+        return PlayBTanks;
+    }
+
+    public List<Integer> getPlayATanks() {
+        return PlayATanks;
+    }
+
+    public int getFlagNoByPlayerA() {
+        return flagNoByPlayerA;
+    }
+
+    public int getFlagNoByPlayerB() {
+        return flagNoByPlayerB;
+    }
+
+    public Position generateFlag() {
+        flagPos =  new Position(map.size()/2 + 1, map.size()/2 + 1);
+        flagExisting = true;
+        return flagPos;
     }
 }
