@@ -30,10 +30,9 @@ public class GameStateMachine {
 
     private void evaluate(List<TankOrder> orders) {
         evaluateShellsMovement();
-        classicOrders(orders, fireOrders, turnDirOrders, moveOrders);
-        evaluateFireActions(fireOrders);
-        evaluateTurnDirectionActions(turnDirOrders);
-        evaluateMoveActions(moveOrders);
+        evaluateFireActions(filtOrder(orders, "fire"));
+        evaluateTurnDirectionActions(filtOrder(orders, "turnTo"));
+        evaluateMoveActions(filtOrder(orders, "move"));
     }
 
     private void evaluateShellsMovement() {
@@ -59,6 +58,11 @@ public class GameStateMachine {
 
     }
 
+
+    private LinkedList<TankOrder> filtOrder(List<TankOrder> orders, String orderName) {
+        return orders.stream().filter(o -> orderName.equals(o.getOrder())  && isValidateOder(o)).collect(Collectors.toCollection(() -> new LinkedList<>()));
+    }
+
     private void clearDestroyedTargets() {
         List<Tank> destroyedTanks = tanks.values().stream().filter(t -> t.isDestroyed()).collect(Collectors.toCollection(() -> new LinkedList<>()));
         destroyedTanks.forEach(t -> tanks.remove(t.getId()));
@@ -76,51 +80,6 @@ public class GameStateMachine {
             throw new InvalidState(msg);
         }
         return tanksAt.size() == 1 ? tanksAt.get(0) : null;
-    }
-
-    private void classicOrders(List<TankOrder> orders, List<TankOrder> fireOrders, List<TankOrder> turnDirOrders, List<TankOrder> moveOrders) {
-        fireOrders.clear();
-        turnDirOrders.clear();
-        moveOrders.clear();
-
-        for (TankOrder order : orders) {
-            if (!isValidateOder(order))
-                continue;
-
-            if (isFireOder(order)) {
-                fireOrders.add(order);
-            } else if (isTurnDirOrder(order)) {
-                turnDirOrders.add(order);
-            } else if (isMoveOrder(order)) {
-                moveOrders.add(order);
-            } else {
-                System.out.println("invalid order : " + order);
-            }
-        }
-    }
-
-    private boolean isMoveOrder(TankOrder order) {
-        if ("move".equals(order.getOrder())) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    private boolean isTurnDirOrder(TankOrder order) {
-        if ("turnTo".equals(order.getOrder())) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    private boolean isFireOder(TankOrder order) {
-        if ("fire".equals(order.getOrder())) {
-            return true;
-        } else {
-            return false;
-        }
     }
 
     private void evaluateFireActions(List<TankOrder> orders) {
@@ -161,10 +120,10 @@ public class GameStateMachine {
     }
 
     private boolean isValidateOder(TankOrder order) {
-        if (!tanks.containsKey(order.getTankId()) ||  tanks.get(order.getTankId()).isDestroyed())
-            return false;
+        if (tanks.containsKey(order.getTankId()) && !tanks.get(order.getTankId()).isDestroyed())
+            return true;
 
-        return true;
+        return false;
     }
 
     private void evaluateMoveActions(List<TankOrder> orders) {
@@ -245,18 +204,15 @@ public class GameStateMachine {
     }
 
     private List<Tank> checkOverlap(final int i, Map<Tank, Position[]> moveTracks) {
-        List<Position> oneMove = new LinkedList<>();
-        moveTracks.forEach((tank, track) -> {
-            oneMove.add(track[i]);
-        });
+        List<Position> evaluatedPoss = moveTracks.values().stream().map(p -> p[i]).collect(Collectors.toCollection(() -> new LinkedList<Position>()));
 
         //add positions of standstill tanks
         List<Position> stillTanksPos = getTanks().values().stream().filter(t -> !moveTracks.containsKey(t)).map(t -> t.getPos())
                 .collect(Collectors.toCollection(() -> new LinkedList<Position>()));
-        oneMove.addAll(stillTanksPos);
+        evaluatedPoss.addAll(stillTanksPos);
 
 
-        List<Tank> tankList = moveTracks.keySet().stream().filter(t -> Collections.frequency(oneMove, moveTracks.get(t)[i]) > 1)
+        List<Tank> tankList = moveTracks.keySet().stream().filter(t -> Collections.frequency(evaluatedPoss, moveTracks.get(t)[i]) > 1)
                 .collect(Collectors.toCollection(() -> new LinkedList<>()));
         tankList.forEach(t -> moveTracks.remove(t));
         return tankList;

@@ -170,7 +170,7 @@ public class GameStateMachineTest {
         stateMachine.getShells().add(shellA);
         stateMachine.getShells().add(shellB);
 
-        List<TankOrder> orders = new LinkedList<TankOrder>();
+        List<TankOrder> orders = new LinkedList<>();
         orders.add(new TankOrder(1, "move", Direction.DOWN));
         orders.add(new TankOrder(2, "move", Direction.DOWN));
 
@@ -184,7 +184,7 @@ public class GameStateMachineTest {
     }
 
     @Test
-    public void testShell() throws InvalidOrder {
+    public void testShellMovement() throws InvalidOrder {
         tankA.moveTo(new Position(2, 2));
         tankB.moveTo(new Position(5, 5));
 
@@ -197,7 +197,7 @@ public class GameStateMachineTest {
 
         stateMachine.newOrders(new LinkedList<TankOrder>());
         assertTrue(tankA.isDestroyed());
-        assertTrue(tankB.isDestroyed());
+        assertEquals("tankB has 1 hp left", 1, tankB.getHp());
         assertTrue(shellA.isDestroyed());
         assertTrue(shellB.isDestroyed());
 
