@@ -1,7 +1,38 @@
 package ele.me.hackathon.tank;
 
+import java.util.List;
+
 /**
  * Created by lanjiangang on 01/11/2017.
  */
 public class Player {
+    private String name;
+    private List<Integer> tanks;
+    private int noOfFlag = 0;
+
+    public Player(String name, List<Integer> tanks) {
+        this.name = name;
+        this.tanks = tanks;
+    }
+
+    public List<Integer> getTanks() {
+        return tanks;
+    }
+
+    public void setTanks(List<Integer> tanks) {
+        this.tanks = tanks;
+    }
+
+    public int getNoOfFlag() {
+        return noOfFlag;
+    }
+
+    public void captureFlag() {
+        System.out.println(name + " captures a flag.");
+        this.noOfFlag++;
+    }
+
+    public boolean belongTo(Tank t) {
+        return tanks.contains(t.getId());
+    }
 }

@@ -34,8 +34,11 @@ public class GameStateMachineTest {
         tanks.put(2, tankB);
 
         stateMachine = new GameStateMachine(tanks, map);
-        stateMachine.setPlayATanks(Arrays.asList(new Integer[] { 1 }));
-        stateMachine.setPlayBTanks(Arrays.asList(new Integer[] { 2 }));
+
+        Map<String, Player> players = new LinkedHashMap<>();
+        players.put("playerA", new Player("playerA", Arrays.asList(new Integer[] { 1 })));
+        players.put("playerB", new Player("playerB", Arrays.asList(new Integer[] { 2 })));
+        stateMachine.setPlayers(players);
     }
 
     @Test
@@ -206,12 +209,19 @@ public class GameStateMachineTest {
         tankA.moveTo(flagPos.moveOneStep(Direction.DOWN));
         tankA.turnTo(Direction.UP);
 
+
+
         List<TankOrder> orders = new LinkedList<>();
         orders.add(new TankOrder(1, "move", Direction.UP));
 
         stateMachine.newOrders(orders);
 
-        assertEquals("PlayA got one flag.", 1, stateMachine.getFlagNoByPlayerA());
-        assertEquals("PlayB got none flag.", 0, stateMachine.getFlagNoByPlayerB());
+        assertEquals("PlayerA got one flag.", 1, stateMachine.getFlagNoByPlayer("playerA"));
+        assertEquals("PlayerB got none flag.", 0, stateMachine.getFlagNoByPlayer("playerB"));
+    }
+
+    @Test
+    public  void reportState() {
+        //GameState state  = stateMachine.reportState();
     }
 }

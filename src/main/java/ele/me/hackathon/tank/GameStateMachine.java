@@ -9,12 +9,9 @@ public class GameStateMachine {
     private GameMap map;
     private Map<Integer, Tank> tanks;
     private List<Shell> shells = new LinkedList<>();
-    private List<Integer> PlayATanks;
-    private List<Integer> PlayBTanks;
-    private int flagNoByPlayerA = 0;
-    private int flagNoByPlayerB = 0;
     private boolean flagExisting  = false;
     private Position flagPos;
+    private Map<String, Player> players;
 
     public GameStateMachine(Map<Integer, Tank> tanks, GameMap map) {
         this.tanks = tanks;
@@ -182,14 +179,8 @@ public class GameStateMachine {
             List<Map.Entry<Tank, Position>> tanks = result.entrySet().stream().filter(e -> e.getValue().equals(flagPos)).collect(Collectors.toCollection(() -> new LinkedList<>()));
             if(tanks.size() > 0) {
                 flagExisting = false;
-                if(getPlayATanks().contains(tanks.get(0).getKey().getId())) {
-                    System.out.println("playA got the flag");
-                    flagNoByPlayerA++;
-                }
-                else if(getPlayBTanks().contains(tanks.get(0).getKey().getId())) {
-                    System.out.println("playA got the flag");
-                    flagNoByPlayerB++;
-                }
+
+                getPlayers().values().stream().filter(p -> p.belongTo(tanks.get(0).getKey())).forEach(p -> p.captureFlag());
             }
         }
     }
@@ -255,33 +246,22 @@ public class GameStateMachine {
         return shells;
     }
 
-    public void setPlayATanks(List<Integer> playATanks) {
-        PlayATanks = playATanks;
-    }
 
-    public void setPlayBTanks(List<Integer> playBTanks) {
-        PlayBTanks = playBTanks;
-    }
-
-    public List<Integer> getPlayBTanks() {
-        return PlayBTanks;
-    }
-
-    public List<Integer> getPlayATanks() {
-        return PlayATanks;
-    }
-
-    public int getFlagNoByPlayerA() {
-        return flagNoByPlayerA;
-    }
-
-    public int getFlagNoByPlayerB() {
-        return flagNoByPlayerB;
+    public int getFlagNoByPlayer(String name) {
+        return getPlayers().get(name).getNoOfFlag();
     }
 
     public Position generateFlag() {
         flagPos =  new Position(map.size()/2 + 1, map.size()/2 + 1);
         flagExisting = true;
         return flagPos;
+    }
+
+    public void setPlayers(Map<String, Player> players) {
+        this.players = players;
+    }
+
+    public Map<String, Player> getPlayers() {
+        return players;
     }
 }
