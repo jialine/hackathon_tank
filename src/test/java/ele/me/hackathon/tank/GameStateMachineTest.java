@@ -222,6 +222,21 @@ public class GameStateMachineTest {
 
     @Test
     public  void reportState() {
-        //GameState state  = stateMachine.reportState();
+        //move tankA to wood
+        tankA.moveTo(new Position(16, 1));
+
+        //add a shell in wood
+        Shell shellA = new Shell(1, new Position(16, 4), Direction.LEFT, 2);
+        //add a shell visible
+        Shell shellB = new Shell(2, new Position(6, 5), Direction.UP, 2);
+        stateMachine.getShells().add(shellA);
+        stateMachine.getShells().add(shellB);
+
+        Map<String, GameState> state  = stateMachine.reportState();
+        assertEquals(2, state.size());
+        assertEquals("playerA shall see 2 tanks", 2, state.get("playerA").getTanks().size());
+        assertEquals("playerB shall see its own tank", 1, state.get("playerB").getTanks().size());
+        assertEquals(1, state.get("playerA").getShells().size());
+        assertEquals(1, state.get("playerB").getShells().size());
     }
 }

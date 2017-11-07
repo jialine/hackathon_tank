@@ -21,7 +21,9 @@ public class GameMap {
         return pixels[pos.getX()][pos.getY()] == 1;
     }
 
-
+    public boolean isVisible(Position pos) {
+        return pixels[pos.getX()][pos.getY()] != 2;
+    }
 
     public static GameMap load(InputStream in) throws IOException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(in));
@@ -78,4 +80,5 @@ public class GameMap {
     public int[][] getPixels() {
         return pixels;
     }
+
 }

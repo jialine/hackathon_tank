@@ -35,4 +35,8 @@ public class Player {
     public boolean belongTo(Tank t) {
         return tanks.contains(t.getId());
     }
+
+    public String getName() {
+        return name;
+    }
 }

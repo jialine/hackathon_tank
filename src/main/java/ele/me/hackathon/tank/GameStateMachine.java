@@ -264,4 +264,42 @@ public class GameStateMachine {
     public Map<String, Player> getPlayers() {
         return players;
     }
+
+    public Map<String, GameState> reportState() {
+        Map<String, GameState> gamestate = new LinkedHashMap<>();
+        for(Player p : getPlayers().values()) {
+            GameState playerstate = new GameState(p.getName());
+            generateOwnState(playerstate);
+            gamestate.put(p.getName(), playerstate);
+       }
+        return gamestate;
+    }
+
+    private void generateOwnState(GameState playerState) {
+        String playerName = playerState.getPlayerName();
+        //add own tanks
+        getPlayers().get(playerName).getTanks().stream()
+                .filter(tankId -> tankExisting(tankId)).forEach(tankId -> {
+            playerState.getTanks().add(getTanks().get(tankId));
+        });
+
+        //add enemy's tanks if thery are visible.
+        getPlayers().entrySet().stream().filter(e -> !e.getKey().equals(playerName)).forEach(e -> {
+            e.getValue().getTanks().stream().filter(tankId -> tankVisible(tankId)).forEach(tankId -> {
+                playerState.getTanks().add(getTanks().get(tankId));
+            });
+        });
+
+        //all shells are reported unless it is invisible
+        getShells().stream().filter(s -> map.isVisible(s.getPos())).forEach(s -> playerState.getShells().add(s));
+    }
+
+    private boolean tankVisible(Integer tankId) {
+        return tankExisting(tankId) && map.isVisible(getTanks().get(tankId).getPos());
+    }
+
+    private boolean tankExisting(Integer tankId) {
+        return getTanks().containsKey(tankId) && !getTanks().get(tankId).isDestroyed();
+    }
+
 }
