@@ -18,7 +18,7 @@ public class GameStateMachine {
         this.map = map;
     }
 
-    public void newOrders(List<TankOrder> orders) throws InvalidOrder {
+    public void newOrders(List<TankOrder> orders) {
         evaluateShellsMovement();
         evaluateFireActions(filtOrder(orders, "fire"));
         evaluateTurnDirectionActions(filtOrder(orders, "turnTo"));
@@ -292,6 +292,8 @@ public class GameStateMachine {
 
         //all shells are reported unless it is invisible
         getShells().stream().filter(s -> map.isVisible(s.getPos())).forEach(s -> playerState.getShells().add(s));
+
+
     }
 
     private boolean tankVisible(Integer tankId) {
