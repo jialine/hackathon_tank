@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.stream.Collectors;
 
 /**
@@ -108,17 +109,18 @@ public class GameEngine {
     private void play() {
         List<PlayerInteract> actors = Arrays.asList(new String[] { playerAAddres, playerBAddres }).stream().map(name -> buildPlayerInteract(name))
                 .collect(Collectors.toList());
-        Map<String, Queue<List<TankOrder>>> tankOrderQueues = actors.stream()
+        Map<String, LinkedBlockingQueue<List<TankOrder>>> tankOrderQueues = actors.stream()
                 .collect(Collectors.toMap(PlayerInteract::getAddress, act -> act.getCommandQueue()));
-        Map<String, Queue<GameState>> stateQueues = actors.stream()
+        Map<String, LinkedBlockingQueue<GameState>> stateQueues = actors.stream()
                 .collect(Collectors.toMap(PlayerInteract::getAddress, act -> act.getStatusQueue()));
 
         actors.forEach(act -> act.start());
 
         //send a singal tp upload map and tank list
-        stateQueues.values().forEach(q -> q.offer(null));
+        stateQueues.values().forEach(q -> q.offer(new GameState("fakeState")));
 
         for (int round = 0; round < maxRound; round++) {
+            System.out.println("Round " + round);
             //clear the command queue to prevent previous dirty command left in the queue
             tankOrderQueues.values().forEach(q -> q.clear());
 
@@ -127,7 +129,13 @@ public class GameEngine {
             latestState.entrySet().forEach(k -> stateQueues.get(k.getKey()).offer(k.getValue()));
 
             List<TankOrder> orders = new LinkedList<>();
-            tankOrderQueues.values().forEach(q -> orders.addAll(q.peek()));
+            tankOrderQueues.values().forEach(q -> {
+                try {
+                    orders.addAll(q.take());
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            });
 
             stateMachine.newOrders(orders);
         }

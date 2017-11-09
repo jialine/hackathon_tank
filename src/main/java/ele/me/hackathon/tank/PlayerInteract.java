@@ -5,7 +5,6 @@ import org.apache.thrift.TException;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.stream.Collectors;
 
@@ -19,8 +18,8 @@ public class PlayerInteract  {
 
     private final String address;
 
-    Queue<List<TankOrder>> commandQueue = new LinkedBlockingQueue<>();
-    Queue<GameState> statusQueue = new LinkedBlockingQueue<>();
+    LinkedBlockingQueue<List<TankOrder>> commandQueue = new LinkedBlockingQueue<>();
+    LinkedBlockingQueue<GameState> statusQueue = new LinkedBlockingQueue<>();
 
     Thread t = new Thread(new Runnable() {
         @Override
@@ -28,27 +27,32 @@ public class PlayerInteract  {
 
             try {
                 //wait an signal to go
-                GameState state = statusQueue.peek();
+                GameState state = statusQueue.take();
 
                 client.uploadMap(convertMap(map));
                 client.assignTanks(tanks);
             } catch (TException e) {
                 e.printStackTrace();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
+
             for(;;) {
 
-                GameState state = statusQueue.peek();
                 try {
+                    GameState state = statusQueue.take();
                     client.latestState(convert(state));
                 } catch (TException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
 
                 try {
-                    commandQueue.add(convertOrders(client.getNewOrders()));
+                    commandQueue.offer(convertOrders(client.getNewOrders()));
                 } catch (TException e) {
                     e.printStackTrace();
-                    commandQueue.add(new LinkedList<>());
+                    commandQueue.offer(new LinkedList<>());
                 }
 
             }
@@ -133,11 +137,11 @@ public class PlayerInteract  {
         return client;
     }
 
-    public Queue<List<TankOrder>> getCommandQueue() {
+    public LinkedBlockingQueue<List<TankOrder>> getCommandQueue() {
         return commandQueue;
     }
 
-    public Queue<GameState> getStatusQueue() {
+    public LinkedBlockingQueue<GameState> getStatusQueue() {
         return statusQueue;
     }
 
