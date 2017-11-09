@@ -38,8 +38,19 @@ struct Order {
     3:Direction dir
 }
 
+struct Args {
+    1:i32 tankSpeed,
+    2:i32 shellSpeed,
+    3:i32 tankHP,
+    4:i32 tankScore,
+    5:i32 flagScore,
+    6:i32 maxRound,
+    7:i32 roundTimeoutInMs
+}
+
 service PlayerServer {
     void uploadMap(1:list<list<i32>> gamemap);
+    void uploadParamters(1:Args arguments);
     void assignTanks(1:list<i32> tanks);
     void latestState(1:GameState state);
     list<Order> getNewOrders();
