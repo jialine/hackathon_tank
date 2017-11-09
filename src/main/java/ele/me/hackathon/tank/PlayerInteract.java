@@ -64,6 +64,7 @@ public class PlayerInteract {
     });
 
     public void start() {
+        t.setDaemon(true);
         t.start();
     }
 

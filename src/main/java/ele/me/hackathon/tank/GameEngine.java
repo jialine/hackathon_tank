@@ -100,7 +100,8 @@ public class GameEngine {
             for (int y = 1; y < n + 1; y++) {
                 index++;
                 tanks.put(index, new Tank(index, new Position(x, y), Direction.RIGHT, tankSpeed, shellSpeed, tankHP));
-                tanks.put(index + noOfTanks, new Tank(index + noOfTanks, new Position(mapsize - x - 1, mapsize - y - 1), Direction.RIGHT, tankSpeed, shellSpeed, tankHP));
+                tanks.put(index + noOfTanks,
+                        new Tank(index + noOfTanks, new Position(mapsize - x - 1, mapsize - y - 1), Direction.RIGHT, tankSpeed, shellSpeed, tankHP));
             }
         }
         return tanks;
@@ -118,12 +119,11 @@ public class GameEngine {
 
         //send a singal tp upload map and tank list
         stateQueues.values().forEach(q -> q.offer(new GameState("fakeState")));
-
-        for (int round = 0; round < maxRound; round++) {
+        int round = 0;
+        for (; round < maxRound; round++) {
             System.out.println("Round " + round);
             //clear the command queue to prevent previous dirty command left in the queue
             tankOrderQueues.values().forEach(q -> q.clear());
-
 
             Map<String, GameState> latestState = stateMachine.reportState();
             latestState.entrySet().forEach(k -> stateQueues.get(k.getKey()).offer(k.getValue()));
@@ -139,6 +139,26 @@ public class GameEngine {
 
             orders.forEach(o -> System.out.println(o));
             stateMachine.newOrders(orders);
+
+            if (stateMachine.gameOvered()) {
+                break;
+            }
+        }
+
+        if (round < maxRound) {
+            System.out.println(stateMachine.getLoser() + " loses the game!");
+        } else {
+            Map<String, Integer> scores = stateMachine.countScore(tankScore, flagScore);
+            if(scores.get(playerAAddres) > scores.get(playerBAddres)) {
+                System.out.println(playerAAddres + " wins the game!");
+            }
+            else if(scores.get(playerAAddres) == scores.get(playerBAddres)) {
+                System.out.println("Draw game!");
+            }
+            else {
+                System.out.println(playerBAddres + " wins the game!");
+            }
+
         }
     }
 

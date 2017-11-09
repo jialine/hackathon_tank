@@ -253,4 +253,25 @@ public class GameStateMachineTest {
         assertEquals(1, state.get("playerA").getShells().size());
         assertEquals(1, state.get("playerB").getShells().size());
     }
+
+
+    @Test
+    public void testJudgeGameOver() {
+        assertFalse(stateMachine.gameOvered());
+        tankA.destroyed();
+        assertTrue(stateMachine.gameOvered());
+        assertEquals("playerA", stateMachine.getLoser());
+    }
+
+    @Test
+    public void testCountScore() {
+        Map<String, Integer> scores = stateMachine.countScore(1, 1);
+        assertEquals(scores.get("playerA"), scores.get("playerB"));
+
+        tankA.destroyed();
+        scores = stateMachine.countScore(1, 1);
+        assertEquals(new Integer(0), scores.get("playerA"));
+        assertEquals(new Integer(1), scores.get("playerB"));
+
+    }
 }

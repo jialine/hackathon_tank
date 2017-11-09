@@ -12,6 +12,7 @@ public class GameStateMachine {
     private boolean flagExisting = false;
     private Position flagPos;
     private Map<String, Player> players;
+    private String loser;
 
     public GameStateMachine(Map<Integer, Tank> tanks, GameMap map) {
         this.tanks = tanks;
@@ -302,4 +303,26 @@ public class GameStateMachine {
         return getTanks().containsKey(tankId) && !getTanks().get(tankId).isDestroyed();
     }
 
+    public boolean gameOvered() {
+        for (Player p : players.values()) {
+            if (p.getTanks().stream().noneMatch(id -> tanks.containsKey(id) && !tanks.get(id).isDestroyed())) {
+                System.out.println("Player " + p.getName() + " lose game because all his tanks are destroyed!");
+                loser = p.getName();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public String getLoser() {
+        return loser;
+    }
+
+    public Map<String, Integer> countScore(int tankScore, int flagScore) {
+        return players.values().stream().collect(Collectors.toMap(p -> p.getName(), p -> {
+            long score =
+                    p.getTanks().stream().filter(id -> tanks.containsKey(id) && !tanks.get(id).isDestroyed()).count() * tankScore + p.getNoOfFlag() * flagScore;
+            return (int)score;
+        }));
+    }
 }
