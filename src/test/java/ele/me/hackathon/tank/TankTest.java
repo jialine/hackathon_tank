@@ -5,6 +5,7 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 /**
  * Created by lanjiangang on 02/11/2017.
@@ -55,7 +56,7 @@ public class TankTest {
         //move the shell one step
         shell.moveTo(shell.getPos().moveOneStep(Direction.RIGHT));
         Shell secondShell = tank.fireAt(Direction.LEFT);
-        assertEquals("The previous shell still exists", shell, secondShell);
+        assertNull("The previous shell still exists", secondShell);
 
         //destroy the shell and fire again, then we shall get a new shell
         shell.destroyed();

@@ -5,7 +5,7 @@ package ele.me.hackathon.tank;
  */
 public class Tank extends  MovableObject {
     private int shellSpeed;
-    private Shell shell;
+    private Shell shell = null;
     private int hp;
 
     public Tank(int id, Position p, Direction dir, int speed, int shellSpeed, int hp) {
@@ -21,10 +21,13 @@ public class Tank extends  MovableObject {
      */
     public Shell fireAt(Direction dir) {
         if(shell == null || shell.isDestroyed()) {
-            shell =  new Shell(getId(), getPos().moveOneStep(dir), dir, shellSpeed);
+            shell =   new Shell(getId(), getPos().moveOneStep(dir), dir, shellSpeed);
+            return shell;
+        }
+        else {
+            return null;
         }
 
-        return shell;
     }
 
     public int getHp() {

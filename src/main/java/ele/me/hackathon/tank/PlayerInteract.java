@@ -1,5 +1,6 @@
 package ele.me.hackathon.tank;
 
+import ele.me.hackathon.tank.player.Order;
 import ele.me.hackathon.tank.player.PlayerServer;
 import org.apache.thrift.TException;
 
@@ -11,7 +12,7 @@ import java.util.stream.Collectors;
 /**
  * Created by lanjiangang on 08/11/2017.
  */
-public class PlayerInteract  {
+public class PlayerInteract {
     private final PlayerServer.Client client;
     private final List<Integer> tanks;
     private final GameMap map;
@@ -37,10 +38,11 @@ public class PlayerInteract  {
                 e.printStackTrace();
             }
 
-            for(;;) {
+            for (; ; ) {
 
                 try {
                     GameState state = statusQueue.take();
+                    System.out.println("Send state to " + getAddress() + " : " + PlayerInteract.toString(convert(state)));
                     client.latestState(convert(state));
                 } catch (TException e) {
                     e.printStackTrace();
@@ -49,7 +51,9 @@ public class PlayerInteract  {
                 }
 
                 try {
-                    commandQueue.offer(convertOrders(client.getNewOrders()));
+                    List<Order> orders = client.getNewOrders();
+                    System.out.println("Recv orders from " + getAddress() + " : " + PlayerInteract.toString(orders));
+                    commandQueue.offer(convertOrders(orders));
                 } catch (TException e) {
                     e.printStackTrace();
                     commandQueue.offer(new LinkedList<>());
@@ -70,7 +74,6 @@ public class PlayerInteract  {
         this.tanks = tanks;
     }
 
-
     protected ele.me.hackathon.tank.player.GameState convert(GameState state) {
         ele.me.hackathon.tank.player.GameState res = new ele.me.hackathon.tank.player.GameState();
         res.setTanks(convertTanks(state.getTanks()));
@@ -80,14 +83,18 @@ public class PlayerInteract  {
     }
 
     private List<ele.me.hackathon.tank.player.Shell> convertShells(List<Shell> shells) {
-        return null;
+        return shells.stream().map(s -> convertShell(s)).collect(Collectors.toList());
+    }
+
+    private ele.me.hackathon.tank.player.Shell convertShell(Shell s) {
+        return new ele.me.hackathon.tank.player.Shell(s.getId(), convertPosition(s.getPos()), convertDir(s.getDir()));
     }
 
     private List<ele.me.hackathon.tank.player.Tank> convertTanks(List<Tank> tanks) {
         return tanks.stream().map(t -> convertTank(t)).collect(Collectors.toList());
     }
 
-    private ele.me.hackathon.tank.player.Tank convertTank(Tank t){
+    private ele.me.hackathon.tank.player.Tank convertTank(Tank t) {
         ele.me.hackathon.tank.player.Tank res = new ele.me.hackathon.tank.player.Tank();
         res.setHp(t.getHp());
         res.setId(t.getId());
@@ -106,7 +113,7 @@ public class PlayerInteract  {
 
     private List<TankOrder> convertOrders(List<ele.me.hackathon.tank.player.Order> newOrders) {
         List<TankOrder> res = newOrders.stream().map(o -> convertTankOrder(o)).collect(Collectors.toList());
-        if(res.stream().filter(o -> !tanks.contains(o.getTankId())).count() > 0) {
+        if (res.stream().filter(o -> !tanks.contains(o.getTankId())).count() > 0) {
             res.stream().filter(o -> !tanks.contains(o.getTankId())).forEach(o -> System.out.println(address + " sent an invalid order:" + o));
             return new LinkedList<>();
         }
@@ -123,9 +130,9 @@ public class PlayerInteract  {
 
     private List<List<Integer>> convertMap(GameMap map) {
         List<List<Integer>> m = new LinkedList<>();
-        for(int[] line : map.getPixels()) {
+        for (int[] line : map.getPixels()) {
             List<Integer> l = new LinkedList<>();
-            for(int p : line) {
+            for (int p : line) {
                 l.add(p);
             }
             m.add(l);
@@ -148,4 +155,59 @@ public class PlayerInteract  {
     public String getAddress() {
         return address;
     }
+
+    public static String toString(ele.me.hackathon.tank.player.GameState state) {
+        java.lang.StringBuilder sb = new java.lang.StringBuilder("GameState(");
+        boolean first = true;
+
+        sb.append("tanks:");
+        if (state.getTanks() == null) {
+            sb.append("null");
+        } else {
+            sb.append("[");
+            state.getTanks().forEach(s -> {
+                sb.append(s);
+                sb.append(",");
+            });
+            sb.append("]");
+        }
+        first = false;
+        if (!first)
+            sb.append(", ");
+        sb.append("shells:");
+        if (state.getShells() == null) {
+            sb.append("null");
+        } else {
+            sb.append("[");
+            state.getShells().forEach(s -> {
+                sb.append(s);
+                sb.append(",");
+            });
+            sb.append("]");
+        }
+        first = false;
+        if (!first)
+            sb.append(", ");
+        sb.append("yourFlags:");
+        sb.append(state.getYourFlags());
+        first = false;
+        if (!first)
+            sb.append(", ");
+        sb.append("enemyFlags:");
+        sb.append(state.getEnemyFlags());
+        first = false;
+        sb.append(")");
+        return sb.toString();
+    }
+
+    private static String toString(List<Order> orders) {
+        java.lang.StringBuilder sb = new java.lang.StringBuilder("Orders[");
+        orders.forEach(o -> {
+            sb.append(o);
+            sb.append(", ");
+        });
+        sb.append("]");
+        return sb.toString();
+    }
+
 }

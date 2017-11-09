@@ -41,9 +41,24 @@ public class GameStateMachineTest {
     }
 
     @Test
+    public void testFireOrders() {
+        List<TankOrder> orders = new LinkedList<>();
+        orders.add(new TankOrder(1, "fire", Direction.RIGHT));
+        orders.add(new TankOrder(2, "fire", Direction.LEFT));
+
+        stateMachine.newOrders(orders);
+        assertEquals(2, stateMachine.getShells().size());
+
+        //no more shells generated if tanks already fired.
+        stateMachine.newOrders(orders);
+        assertEquals(2, stateMachine.getShells().size());
+
+    }
+
+    @Test
     public void testTurnToOrders() throws Exception {
 
-        List<TankOrder> orders = new LinkedList<TankOrder>();
+        List<TankOrder> orders = new LinkedList<>();
         orders.add(new TankOrder(1, "turnTo", Direction.RIGHT));
         orders.add(new TankOrder(2, "turnTo", Direction.LEFT));
 

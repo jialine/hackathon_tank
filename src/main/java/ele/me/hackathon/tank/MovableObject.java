@@ -101,4 +101,15 @@ public class MovableObject {
     protected void setSpeed(int speed) {
         this.speed = speed;
     }
+
+    @Override
+    public String toString() {
+        return "MovableObject{" +
+                "id=" + id +
+                ", pos=" + pos +
+                ", dir=" + dir +
+                ", speed=" + speed +
+                ", destroyed=" + destroyed +
+                '}';
+    }
 }

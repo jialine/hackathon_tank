@@ -100,7 +100,7 @@ public class GameEngine {
             for (int y = 1; y < n + 1; y++) {
                 index++;
                 tanks.put(index, new Tank(index, new Position(x, y), Direction.RIGHT, tankSpeed, shellSpeed, tankHP));
-                tanks.put(index + noOfTanks, new Tank(index, new Position(mapsize - x - 1, mapsize - y - 1), Direction.RIGHT, tankSpeed, shellSpeed, tankHP));
+                tanks.put(index + noOfTanks, new Tank(index + noOfTanks, new Position(mapsize - x - 1, mapsize - y - 1), Direction.RIGHT, tankSpeed, shellSpeed, tankHP));
             }
         }
         return tanks;
@@ -137,6 +137,7 @@ public class GameEngine {
                 }
             });
 
+            orders.forEach(o -> System.out.println(o));
             stateMachine.newOrders(orders);
         }
     }

@@ -4,7 +4,6 @@ package ele.me.hackathon.tank;
  * Created by lanjiangang on 27/10/2017.
  */
 public class Shell extends MovableObject {
-    private int t;
 
     public Shell(int id, Position pos, Direction dir, int speed) {
         super(id, pos, dir, speed);
@@ -31,4 +30,14 @@ public class Shell extends MovableObject {
     public int hashCode() {
         return getId();
     }
+
+    @Override
+    public String toString() {
+        return "Shell{" +
+                "id=" + getId() +
+                ", pos=" + getPos() +
+                ", dir=" + getDir() +
+                '}';
+    }
+
 }
