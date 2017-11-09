@@ -45,7 +45,7 @@ public class PlayerInteractTest {
 
     @Test
     public void testConvertGameState() {
-        PlayerInteract interactor = new PlayerInteract("playerA", null, null, null);
+        PlayerInteract interactor = new PlayerInteract("playerA", null, null, null, null);
         Map<String, GameState> state = stateMachine.reportState();
         ele.me.hackathon.tank.player.GameState res = interactor.convert(state.get("playerA"));
         assertEquals(2, res.getTanks().size());

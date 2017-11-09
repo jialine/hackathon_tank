@@ -36,6 +36,7 @@ public class GameEngine {
     private static GameEngine instance = new GameEngine();
     private Map<String, PlayerServer.Client> clients;
     private Map<String, Player> players;
+    private GameOptions gameOptions;
 
     public static void main(String[] args) throws TTransportException {
 
@@ -63,6 +64,7 @@ public class GameEngine {
         roundTimeout = Integer.parseInt(args[8]);
         playerAAddres = args[9];
         playerBAddres = args[10];
+        this.gameOptions = new GameOptions(noOfTanks, tankSpeed, shellSpeed, tankHP, tankScore, flagScore, maxRound, roundTimeout);
         System.out.println("Parameters parsed. " + this.toString());
     }
 
@@ -108,7 +110,7 @@ public class GameEngine {
     }
 
     private void play() {
-        List<PlayerInteract> actors = Arrays.asList(new String[] { playerAAddres, playerBAddres }).stream().map(name -> buildPlayerInteract(name))
+        List<PlayerInteract> actors = Arrays.asList(new String[] { playerAAddres, playerBAddres }).stream().map(name -> buildPlayerInteract(name, gameOptions))
                 .collect(Collectors.toList());
         Map<String, LinkedBlockingQueue<List<TankOrder>>> tankOrderQueues = actors.stream()
                 .collect(Collectors.toMap(PlayerInteract::getAddress, act -> act.getCommandQueue()));
@@ -149,21 +151,19 @@ public class GameEngine {
             System.out.println(stateMachine.getLoser() + " loses the game!");
         } else {
             Map<String, Integer> scores = stateMachine.countScore(tankScore, flagScore);
-            if(scores.get(playerAAddres) > scores.get(playerBAddres)) {
+            if (scores.get(playerAAddres) > scores.get(playerBAddres)) {
                 System.out.println(playerAAddres + " wins the game!");
-            }
-            else if(scores.get(playerAAddres) == scores.get(playerBAddres)) {
+            } else if (scores.get(playerAAddres) == scores.get(playerBAddres)) {
                 System.out.println("Draw game!");
-            }
-            else {
+            } else {
                 System.out.println(playerBAddres + " wins the game!");
             }
 
         }
     }
 
-    private PlayerInteract buildPlayerInteract(String name) {
-        return new PlayerInteract(name, clients.get(name), map, players.get(name).getTanks());
+    private PlayerInteract buildPlayerInteract(String name, GameOptions gameOptions) {
+        return new PlayerInteract(name, clients.get(name), map, players.get(name).getTanks(), this.gameOptions);
     }
 
     private Map<String, PlayerServer.Client> connectToPlayers() throws TTransportException {

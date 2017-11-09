@@ -40,6 +40,12 @@ public class MockPlayerServer {
         }
 
         @Override
+        public void uploadParamters(Args arguments) throws TException {
+            System.out.println("Arguments uploaded!");
+            System.out.println(arguments);
+        }
+
+        @Override
         public void assignTanks(List<Integer> tanks) throws TException {
             this.tanks = tanks;
             System.out.println("Tanks assigned!");

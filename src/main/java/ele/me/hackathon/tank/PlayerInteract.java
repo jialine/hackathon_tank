@@ -1,5 +1,6 @@
 package ele.me.hackathon.tank;
 
+import ele.me.hackathon.tank.player.Args;
 import ele.me.hackathon.tank.player.Order;
 import ele.me.hackathon.tank.player.PlayerServer;
 import org.apache.thrift.TException;
@@ -18,61 +19,79 @@ public class PlayerInteract {
     private final GameMap map;
 
     private final String address;
+    private final GameOptions gameOptions;
 
     LinkedBlockingQueue<List<TankOrder>> commandQueue = new LinkedBlockingQueue<>();
     LinkedBlockingQueue<GameState> statusQueue = new LinkedBlockingQueue<>();
 
-    Thread t = new Thread(new Runnable() {
-        @Override
-        public void run() {
-
-            try {
-                //wait an signal to go
-                GameState state = statusQueue.take();
-
-                client.uploadMap(convertMap(map));
-                client.assignTanks(tanks);
-            } catch (TException e) {
-                e.printStackTrace();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
-            for (; ; ) {
-
-                try {
-                    GameState state = statusQueue.take();
-                    System.out.println("Send state to " + getAddress() + " : " + PlayerInteract.toString(convert(state)));
-                    client.latestState(convert(state));
-                } catch (TException e) {
-                    e.printStackTrace();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-
-                try {
-                    List<Order> orders = client.getNewOrders();
-                    System.out.println("Recv orders from " + getAddress() + " : " + PlayerInteract.toString(orders));
-                    commandQueue.offer(convertOrders(orders));
-                } catch (TException e) {
-                    e.printStackTrace();
-                    commandQueue.offer(new LinkedList<>());
-                }
-
-            }
-        }
-    });
+    Thread t;
 
     public void start() {
         t.setDaemon(true);
         t.start();
     }
 
-    public PlayerInteract(String addr, PlayerServer.Client client, GameMap map, List<Integer> tanks) {
+    public PlayerInteract(String addr, PlayerServer.Client client, GameMap map, List<Integer> tanks, GameOptions gameOptions) {
         this.address = addr;
         this.client = client;
         this.map = map;
         this.tanks = tanks;
+        this.gameOptions = gameOptions;
+        t = new Thread(new Runnable() {
+            @Override
+            public void run() {
+
+                try {
+                    //wait an signal to go
+                    GameState state = statusQueue.take();
+
+                    client.uploadMap(convertMap(map));
+
+                    client.uploadParamters(convertGameOptions(gameOptions));
+
+                    client.assignTanks(tanks);
+                } catch (TException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+                for (; ; ) {
+
+                    try {
+                        GameState state = statusQueue.take();
+                        System.out.println("Send state to " + getAddress() + " : " + PlayerInteract.toString(convert(state)));
+                        client.latestState(convert(state));
+                    } catch (TException e) {
+                        e.printStackTrace();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+
+                    try {
+                        List<Order> orders = client.getNewOrders();
+                        System.out.println("Recv orders from " + getAddress() + " : " + PlayerInteract.toString(orders));
+                        commandQueue.offer(convertOrders(orders));
+                    } catch (TException e) {
+                        e.printStackTrace();
+                        commandQueue.offer(new LinkedList<>());
+                    }
+
+                }
+            }
+        });
+    }
+
+    private Args convertGameOptions(GameOptions gameOptions) {
+        Args args = new Args();
+        args.setTankSpeed(gameOptions.getTankSpeed());
+        args.setShellSpeed(gameOptions.getShellSpeed());
+        args.setTankHP(gameOptions.getTankHP());
+        args.setFlagScore(gameOptions.getFlagScore());
+        args.setTankScore(gameOptions.getTankScore());
+        args.setMaxRound(gameOptions.getMaxRound());
+        args.setRoundTimeoutInMs(gameOptions.getRoundTimeout());
+        return args;
     }
 
     protected ele.me.hackathon.tank.player.GameState convert(GameState state) {
