@@ -71,7 +71,11 @@ public class PlayerInteract {
                     try {
                         List<Order> orders = client.getNewOrders();
                         System.out.println("Recv orders from " + getAddress() + " : " + PlayerInteract.toString(orders));
-                        commandQueue.offer(convertOrders(orders));
+                        List<TankOrder> tankOrders = convertOrders(orders);
+                        if(!verifyPlayerInput(tankOrders)) {
+                            tankOrders = new LinkedList<>();
+                        }
+                        commandQueue.offer(tankOrders);
                     } catch (TException e) {
                         e.printStackTrace();
                         commandQueue.offer(new LinkedList<>());
@@ -80,6 +84,18 @@ public class PlayerInteract {
                 }
             }
         });
+    }
+
+    protected boolean verifyPlayerInput(List<TankOrder> tankOrders) {
+        if (tankOrders.stream().filter(o -> !tanks.contains(o.getTankId())).count() > 0) {
+            tankOrders.stream().filter(o -> !tanks.contains(o.getTankId())).forEach(o -> System.out.println(address + " try to control enemy's tank:" + o));
+            return false;
+        }
+        if (tankOrders.stream().map(TankOrder::getTankId).collect(Collectors.toSet()).size() < tankOrders.size()) {
+            System.out.println(address + " has duplicate orders");
+            return false;
+        }
+        return true;
     }
 
     private Args convertGameOptions(GameOptions gameOptions) {
@@ -133,10 +149,6 @@ public class PlayerInteract {
 
     private List<TankOrder> convertOrders(List<ele.me.hackathon.tank.player.Order> newOrders) {
         List<TankOrder> res = newOrders.stream().map(o -> convertTankOrder(o)).collect(Collectors.toList());
-        if (res.stream().filter(o -> !tanks.contains(o.getTankId())).count() > 0) {
-            res.stream().filter(o -> !tanks.contains(o.getTankId())).forEach(o -> System.out.println(address + " sent an invalid order:" + o));
-            return new LinkedList<>();
-        }
         return res;
     }
 
