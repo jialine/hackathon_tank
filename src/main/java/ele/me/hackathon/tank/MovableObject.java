@@ -42,6 +42,10 @@ public class MovableObject {
         return track;
     }
 
+    public void moveOneStep() {
+        this.pos = pos.moveOneStep(dir);
+    }
+
     /**
      * move the object to given position.
      * @param position
@@ -112,4 +116,5 @@ public class MovableObject {
                 ", destroyed=" + destroyed +
                 '}';
     }
+
 }

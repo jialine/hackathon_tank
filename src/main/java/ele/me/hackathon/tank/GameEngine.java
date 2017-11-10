@@ -80,6 +80,7 @@ public class GameEngine {
         this.players = assignTankToPlayers(tanks);
 
         stateMachine = new GameStateMachine(tanks, map);
+        stateMachine.setOptions(gameOptions);
         stateMachine.setPlayers(players);
     }
 
