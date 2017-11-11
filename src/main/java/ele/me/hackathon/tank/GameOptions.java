@@ -69,4 +69,8 @@ public class GameOptions {
                 ", roundTimeout=" + roundTimeout +
                 '}';
     }
+
+    public void setTankSpeed(int tankSpeed) {
+        this.tankSpeed = tankSpeed;
+    }
 }

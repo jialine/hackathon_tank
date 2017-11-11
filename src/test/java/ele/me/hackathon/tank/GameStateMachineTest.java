@@ -17,6 +17,7 @@ public class GameStateMachineTest {
     private GameStateMachine stateMachine = null;
     private Tank tankA;
     private Tank tankB;
+    GameOptions options;
 
     @BeforeClass
     public static void beforeClass() throws IOException {
@@ -32,7 +33,7 @@ public class GameStateMachineTest {
         tanks.put(1, tankA);
         tanks.put(2, tankB);
 
-        GameOptions options = new GameOptions(1, 1, 2, 2, 1, 1, 100, 2000);
+        options = new GameOptions(1, 1, 2, 2, 1, 1, 100, 2000);
         stateMachine = new GameStateMachine(tanks, map);
         stateMachine.setOptions(options);
 
@@ -243,6 +244,7 @@ public class GameStateMachineTest {
 
         assertTrue("tankA shall be destroyed", tankA.isDestroyed());
         assertFalse("tankB shall servive because it has 2 hp", tankB.isDestroyed());
+        assertEquals("tankB has one HP left", 1, tankB.getHp());
         assertEquals(new Position(2, 5), tankB.getPos());
         assertTrue(shellA.isDestroyed());
         assertTrue(shellB.isDestroyed());
@@ -250,8 +252,7 @@ public class GameStateMachineTest {
 
     @Test
     public void testPassThroughShell() throws InvalidOrder {
-        tankA.setSpeed(2);
-        tankB.setSpeed(2);
+        options.setTankSpeed(2);
 
         //add shell will move onto the path of tankA and tankB
         Shell shellA = new Shell(1, new Position(2, 3), Direction.LEFT, 2);
@@ -267,6 +268,7 @@ public class GameStateMachineTest {
 
         assertTrue("tankA shall be destroyed", tankA.isDestroyed());
         assertFalse("tankB shall servive because it has 2 hp", tankB.isDestroyed());
+        assertEquals("tankB has one HP left", 1, tankB.getHp());
         assertEquals(new Position(3, 5), tankB.getPos());
         assertTrue(shellA.isDestroyed());
         assertTrue(shellB.isDestroyed());

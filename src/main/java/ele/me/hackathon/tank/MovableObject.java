@@ -45,6 +45,9 @@ public class MovableObject {
     public void moveOneStep() {
         this.pos = pos.moveOneStep(dir);
     }
+    public void withdrawOneStep() {
+        this.pos = pos.withDrawStep(dir);
+    }
 
     /**
      * move the object to given position.
