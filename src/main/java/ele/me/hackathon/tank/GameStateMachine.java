@@ -121,19 +121,12 @@ public class GameStateMachine {
     }
 
     private void evaluateMoveActions(List<TankOrder> orders) {
+        List<Tank> tanksToMove = orders.stream().filter(o -> isValidateOrder(o)).map(o -> getTanks().get(o.getTankId())).collect(Collectors.toList());
+
         for (int i = 0; i < options.getTankSpeed(); i++) {
-            List<Tank> tanksToMove = orders.stream().filter(o -> isValidateOrder(o)).map(o -> getTanks().get(o.getTankId())).collect(Collectors.toList());
 
             tanksToMove.forEach(t -> t.moveOneStep());
-            //check if tanks move to other tank's position
-            List<Tank> crowdTanks = tanksToMove.stream().filter(t -> existingMoreThanOneTanks(t.getPos())).collect(Collectors.toList());
-            crowdTanks.forEach(t -> t.withdrawOneStep());
-            tanksToMove.removeAll(crowdTanks);
-
-            //check if tanks move to barrier
-            List<Tank> battierCrashes = tanksToMove.stream().filter(t -> map.isBarrier(t.getPos())).collect(Collectors.toList());
-            battierCrashes.forEach(t -> t.withdrawOneStep());
-            tanksToMove.removeAll(battierCrashes);
+            withdrawUntilNoOverlap(tanksToMove);
 
             //check flag
             tanksToMove.stream().filter(t -> flagExisting && flagPos.equals(t.getPos())).forEach(t -> {
@@ -150,8 +143,30 @@ public class GameStateMachine {
                 });
             });
 
+            tanksToMove.removeIf(t -> t.isDestroyed());
             clearDestroyedTargets();
         }
+    }
+
+    private List<Tank> withdrawUntilNoOverlap(List<Tank> allMovedTanks) {
+        List<Tank> allWithdrawedTank = new LinkedList<>();
+        List<Tank> invalidTanks = null;
+        while (!(invalidTanks = findInvalidTanks()).isEmpty()) {
+            invalidTanks.stream().filter(t -> allMovedTanks.contains(t)).forEach(t -> {
+                t.withdrawOneStep();
+                allWithdrawedTank.add(t);
+                allMovedTanks.remove(t);
+            });
+        }
+        return allWithdrawedTank;
+    }
+
+    private List<Tank> findInvalidTanks() {
+        return getTanks().values().stream().filter(t -> invalidPostion(t.getPos())).collect(Collectors.toList());
+    }
+
+    private boolean invalidPostion(Position pos) {
+        return map.isBarrier(pos) || existingMoreThanOneTanks(pos);
     }
 
     private Player getPlayer(Tank t) {
@@ -165,7 +180,6 @@ public class GameStateMachine {
     private Collection<Tank> getTankList() {
         return getTanks().values();
     }
-
 
     private List<Shell> getShellAt(Position position) {
         List<Shell> shellList = shells.stream().filter(shell -> !shell.isDestroyed() && shell.getPos().equals(position))

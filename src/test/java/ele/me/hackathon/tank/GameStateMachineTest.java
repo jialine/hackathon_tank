@@ -229,6 +229,27 @@ public class GameStateMachineTest {
     }
 
     @Test
+    public void testWithdrawMakesOverlap() {
+        tankA.moveTo(new Position(1, 1));
+        tankA.turnTo(Direction.RIGHT);
+        tankB.moveTo(new Position(1, 2));
+        tankB.turnTo(Direction.RIGHT);
+        Tank tankC = new Tank(3, new Position(2, 3), Direction.UP, 1, 2, 1);
+        stateMachine.getTanks().put(3, tankC);
+
+        List<TankOrder> orders = new LinkedList<TankOrder>();
+        orders.add(new TankOrder(1, "move", Direction.UP));
+        orders.add(new TankOrder(2, "move", Direction.UP));
+        orders.add(new TankOrder(3, "move", Direction.UP));
+
+        stateMachine.newOrders(orders);
+
+        assertEquals(new Position(1, 1), tankA.getPos());
+        assertEquals(new Position(1, 2), tankB.getPos());
+        assertEquals(new Position(2, 3), tankC.getPos());
+    }
+
+    @Test
     public void testMoveToShell() throws InvalidOrder {
         List<TankOrder> orders = new LinkedList<TankOrder>();
         orders.add(new TankOrder(1, "move", Direction.DOWN));
