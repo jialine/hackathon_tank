@@ -12,7 +12,6 @@ public class GameStateMachine {
     private boolean flagExisting = false;
     private Position flagPos;
     private Map<String, Player> players;
-    private String loser;
     private GameOptions options;
 
     public GameStateMachine(Map<Integer, Tank> tanks, GameMap map) {
@@ -169,6 +168,8 @@ public class GameStateMachine {
         return map.isBarrier(pos) || existingMoreThanOneTanks(pos);
     }
 
+
+
     private Player getPlayer(Tank t) {
         return getPlayers().values().stream().filter(p -> p.getTanks().contains(t.getId())).findFirst().get();
     }
@@ -177,7 +178,7 @@ public class GameStateMachine {
         return (getTankList().stream().filter(t -> pos.equals(t.getPos())).count() > 1);
     }
 
-    private Collection<Tank> getTankList() {
+    public Collection<Tank> getTankList() {
         return getTanks().values();
     }
 
@@ -232,18 +233,14 @@ public class GameStateMachine {
     }
 
     public boolean gameOvered() {
+        boolean result = false;
         for (Player p : players.values()) {
             if (p.getTanks().stream().noneMatch(id -> tanks.containsKey(id) && !tanks.get(id).isDestroyed())) {
-                System.out.println("Player " + p.getName() + " lose game because all his tanks are destroyed!");
-                loser = p.getName();
-                return true;
+                System.out.println("Player " + p.getName() + " loses all tanks!");
+                result =  true;
             }
         }
-        return false;
-    }
-
-    public String getLoser() {
-        return loser;
+        return result;
     }
 
     public Map<String, Integer> countScore(int tankScore, int flagScore) {
@@ -272,5 +269,9 @@ public class GameStateMachine {
 
     public void setOptions(GameOptions options) {
         this.options = options;
+    }
+
+    public long getPlayerTankNo(String playerAAddres) {
+        return getPlayers().get(playerAAddres).getTanks().stream().filter(id -> tanks.containsKey(id)).count();
     }
 }

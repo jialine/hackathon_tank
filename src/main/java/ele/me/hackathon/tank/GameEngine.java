@@ -148,18 +148,19 @@ public class GameEngine {
             }
         }
 
+        Map<String, Integer> scores;
         if (round < maxRound) {
-            System.out.println(stateMachine.getLoser() + " loses the game!");
+            scores = stateMachine.countScore(tankScore, 0);
         } else {
-            Map<String, Integer> scores = stateMachine.countScore(tankScore, flagScore);
-            if (scores.get(playerAAddres) > scores.get(playerBAddres)) {
-                System.out.println(playerAAddres + " wins the game!");
-            } else if (scores.get(playerAAddres) == scores.get(playerBAddres)) {
-                System.out.println("Draw game!");
-            } else {
-                System.out.println(playerBAddres + " wins the game!");
-            }
+            scores = stateMachine.countScore(tankScore, flagScore);
+        }
 
+        if (scores.get(playerAAddres) > scores.get(playerBAddres)) {
+            System.out.println(playerAAddres + " wins the game!");
+        } else if (scores.get(playerAAddres) == scores.get(playerBAddres)) {
+            System.out.println("Draw game!");
+        } else {
+            System.out.println(playerBAddres + " wins the game!");
         }
     }
 

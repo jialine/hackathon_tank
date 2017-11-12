@@ -335,7 +335,8 @@ public class GameStateMachineTest {
         assertFalse(stateMachine.gameOvered());
         tankA.destroyed();
         assertTrue(stateMachine.gameOvered());
-        assertEquals("playerA", stateMachine.getLoser());
+        tankB.destroyed();
+        assertTrue(stateMachine.gameOvered());
     }
 
     @Test
