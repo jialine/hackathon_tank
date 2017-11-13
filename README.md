@@ -37,7 +37,7 @@ game engine of tank war for hackathon 2017
 5. 每回个超时时间为s毫秒，如果超时则视参赛方tank不进行任何操作。
 6. 比赛最多进行t回合。如果t回合之前一方tank全部被击毁，游戏结束。
 
-##选手程序设计
+## 选手程序设计
 1. 参赛选手的程序需要实现src/main/resources/player.idl中定义的服务，并启动在9000端口上。
 2. 参赛选手需要自己订制docker容器，启动脚本为 /data/start.sh
 
