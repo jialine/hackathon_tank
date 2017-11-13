@@ -1,11 +1,16 @@
 package ele.me.hackathon.tank;
 
 import ele.me.hackathon.tank.player.PlayerServer;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.InputStreamEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransportException;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -38,6 +43,13 @@ public class GameEngine {
     private Map<String, PlayerServer.Client> clients;
     private Map<String, Player> players;
     private GameOptions gameOptions;
+    private Environment env = new Environment();
+
+    public static class Environment {
+        public String get(String name) {
+            return System.getenv(name);
+        }
+    }
 
     public static void main(String[] args) throws TTransportException {
 
@@ -49,7 +61,7 @@ public class GameEngine {
     public GameEngine() {
     }
 
-    private void parseArgs(String[] args) {
+     void parseArgs(String[] args) {
         mapFile = args[0];
         noOfTanks = Integer.parseInt(args[1]);
         tankSpeed = Integer.parseInt(args[2]);
@@ -147,6 +159,14 @@ public class GameEngine {
             checkGenerateFlag(round);
         }
 
+        reportResult(round);
+    }
+
+    protected void reportResult(int round) {
+        String resUrl = env.get("WAR_CALLBAVK_URL");
+        HttpPost post = new HttpPost(resUrl);
+        StringBuffer sb = new StringBuffer("{\n");
+
         Map<String, Integer> scores;
         if (round < maxRound) {
             scores = stateMachine.countScore(tankScore, 0);
@@ -156,10 +176,23 @@ public class GameEngine {
 
         if (scores.get(playerAAddres) > scores.get(playerBAddres)) {
             System.out.println(playerAAddres + " wins the game!");
+            sb.append("\"result\":\"draw\",\n");
+            sb.append("\"win\":\"").append(playerAAddres).append("\"\n");
         } else if (scores.get(playerAAddres) == scores.get(playerBAddres)) {
             System.out.println("Draw game!");
+            sb.append("\"result\":\"draw\",\n");
         } else {
             System.out.println(playerBAddres + " wins the game!");
+            sb.append("\"result\":\"draw\",\n");
+            sb.append("\"win\":\"").append(playerBAddres).append("\"\n");
+        }
+        sb.append("}");
+        post.setEntity(new InputStreamEntity(new ByteArrayInputStream(sb.toString().getBytes())));
+        CloseableHttpClient httpclient = HttpClients.createDefault();
+        try {
+            httpclient.execute(post);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -216,8 +249,8 @@ public class GameEngine {
         this.stateMachine = stateMachine;
     }
 
-    public void setGameOptions(GameOptions gameOptions) {
-        this.gameOptions = gameOptions;
+    public GameOptions getGameOptions() {
+        return gameOptions;
     }
 
     public int getNoOfFlagGenerated() {
@@ -226,5 +259,9 @@ public class GameEngine {
 
     public void setMap(GameMap map) {
         this.map = map;
+    }
+
+    public void setEnv(Environment env) {
+        this.env = env;
     }
 }
