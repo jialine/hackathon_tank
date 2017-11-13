@@ -34,4 +34,7 @@ public enum Direction {
         }
     }
 
+    public boolean negative(Direction dir) {
+        return (dir.value + this.value) == 3 || (dir.value + this.value) == 7;
+    }
 }

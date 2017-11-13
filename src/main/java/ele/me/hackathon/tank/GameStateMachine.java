@@ -2,7 +2,10 @@ package ele.me.hackathon.tank; /**
  * Created by lanjiangang on 27/10/2017.
  */
 
-import java.util.*;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class GameStateMachine {
@@ -184,6 +187,8 @@ public class GameStateMachine {
 
         for (int i = 0; i < options.getTankSpeed(); i++) {
 
+            List<Tank> f2fTanks = tanksToMove.stream().filter(t -> hasFace2FaceTank(t, tanksToMove)).collect(Collectors.toList());
+            tanksToMove.removeAll(f2fTanks);
             tanksToMove.forEach(t -> t.moveOneStep());
             withdrawUntilNoOverlap(tanksToMove);
 
@@ -207,17 +212,24 @@ public class GameStateMachine {
         }
     }
 
-    private List<Tank> withdrawUntilNoOverlap(List<Tank> allMovedTanks) {
-        List<Tank> allWithdrawedTank = new LinkedList<>();
+    private boolean hasFace2FaceTank(Tank t, List<Tank> tanksToMove) {
+        Position nextPos = t.getPos().moveOneStep(t.getDir());
+        for (Tank tank : tanksToMove) {
+            if (nextPos.equals(tank.getPos()) && tank.getDir().negative(t.getDir())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void withdrawUntilNoOverlap(List<Tank> allMovedTanks) {
         List<Tank> invalidTanks = null;
         while (!(invalidTanks = findInvalidTanks()).isEmpty()) {
             invalidTanks.stream().filter(t -> allMovedTanks.contains(t)).forEach(t -> {
                 t.withdrawOneStep();
-                allWithdrawedTank.add(t);
                 allMovedTanks.remove(t);
             });
         }
-        return allWithdrawedTank;
     }
 
     private List<Tank> findInvalidTanks() {

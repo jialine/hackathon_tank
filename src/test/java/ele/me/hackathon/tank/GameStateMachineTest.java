@@ -229,6 +229,26 @@ public class GameStateMachineTest {
     }
 
     @Test
+    public void testMoveFace2Face() {
+        //move two tanks face to face
+        tankA.turnTo(Direction.RIGHT);
+        tankA.moveTo(new Position(1, 1));
+
+        tankB.turnTo(Direction.LEFT);
+        tankB.moveTo(new Position(1, 2));
+
+        List<TankOrder> orders = new LinkedList<TankOrder>();
+        orders.add(new TankOrder(1, "move", Direction.RIGHT));
+        orders.add(new TankOrder(2, "move", Direction.LEFT));
+
+        stateMachine.newOrders(orders);
+
+        assertEquals(new Position(1, 1), tankA.getPos());
+        assertEquals(new Position(1, 2), tankB.getPos());
+
+    }
+
+    @Test
     public void testWithdrawMakesOverlap() {
         tankA.moveTo(new Position(1, 1));
         tankA.turnTo(Direction.RIGHT);
