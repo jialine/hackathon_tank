@@ -21,6 +21,7 @@ public class Player {
 
     public void setTanks(List<Integer> tanks) {
         this.tanks = tanks;
+        tanks.sort(Integer::compare);
     }
 
     public int getNoOfFlag() {

@@ -12,6 +12,8 @@ public class GameStateMachine {
     private Position flagPos;
     private Map<String, Player> players;
     private GameOptions options;
+    private List<Tank> destroyedTanks = new LinkedList<>();
+    private List<Shell> destroyedShells = new LinkedList<>();
 
     public GameStateMachine(Map<Integer, Tank> tanks, GameMap map) {
         this.tanks = tanks;
@@ -19,10 +21,64 @@ public class GameStateMachine {
     }
 
     public void newOrders(List<TankOrder> orders) {
+        destroyedTanks.clear();
+        destroyedShells.clear();
+
         evaluateShellsMovement();
         evaluateFireActions(filtOrder(orders, "fire"));
         evaluateTurnDirectionActions(filtOrder(orders, "turnTo"));
         evaluateMoveActions(filtOrder(orders, "move"));
+
+        printReplayLog();
+    }
+
+    private void printReplayLog() {
+        StringBuffer sb = new StringBuffer("ReplayLog: {");
+        generateTanksLog(sb);
+        generateShellsLog(sb);
+        sb.append("}");
+        System.out.println(sb.toString());
+    }
+
+    private void generateShellsLog(StringBuffer sb) {
+        List<Shell> shells = new LinkedList<>();
+        shells.addAll(getShells());
+        shells.addAll(destroyedShells);
+        shells.sort(Shell::compare);
+
+        sb.append("shells: [");
+        for (Shell t : shells) {
+            sb.append("{");
+            sb.append("id:").append(t.getId());
+            sb.append(", dir:").append(t.getDir().name());
+            sb.append(", position:{x:").append(t.getPos().getX()).append(",y:").append(t.getPos().getY()).append("},");
+            sb.append(", status:").append(t.isDestroyed() ? "destroyed" : "alive");
+            sb.append("},");
+        }
+        if (shells.size() > 0)
+            sb.deleteCharAt(sb.length() - 1);
+        sb.append("]");
+    }
+
+    private void generateTanksLog(StringBuffer sb) {
+        List<Tank> tanks = new LinkedList<>();
+        tanks.addAll(getTankList());
+        tanks.addAll(destroyedTanks);
+        tanks.sort(Tank::compare);
+
+        sb.append("tanks: [");
+        for (Tank t : tanks) {
+            sb.append("{");
+            sb.append("id:").append(t.getId());
+            sb.append(", dir:").append(t.getDir().name());
+            sb.append(", position:{x:").append(t.getPos().getX()).append(",y:").append(t.getPos().getY()).append("}");
+            sb.append(", status:").append(t.isDestroyed() ? "destroyed" : "alive");
+            sb.append(", owner:").append(getPlayer(t).getName());
+            sb.append("},");
+        }
+        if (tanks.size() > 0)
+            sb.deleteCharAt(sb.length() - 1);
+        sb.append("],");
     }
 
     private void evaluateShellsMovement() {
@@ -46,10 +102,15 @@ public class GameStateMachine {
     }
 
     private void clearDestroyedTargets() {
-        List<Tank> destroyedTanks = tanks.values().stream().filter(t -> t.isDestroyed()).collect(Collectors.toCollection(() -> new LinkedList<>()));
-        destroyedTanks.forEach(t -> tanks.remove(t.getId()));
+        List<Tank> newDestroyedTanks = tanks.values().stream().filter(t -> t.isDestroyed()).collect(Collectors.toCollection(() -> new LinkedList<>()));
+        destroyedTanks.addAll(newDestroyedTanks);
+        newDestroyedTanks.forEach(t -> tanks.remove(t.getId()));
 
-        shells.removeIf(shell -> shell.isDestroyed());
+        shells.removeIf(shell -> {
+            if (shell.isDestroyed())
+                destroyedShells.add(shell);
+            return shell.isDestroyed();
+        });
     }
 
     private LinkedList<TankOrder> filtOrder(List<TankOrder> orders, String orderName) {
@@ -171,6 +232,10 @@ public class GameStateMachine {
         return getPlayers().values().stream().filter(p -> p.getTanks().contains(t.getId())).findFirst().get();
     }
 
+    private Player getPlayer(int tid) {
+        return getPlayers().values().stream().filter(p -> p.getTanks().contains(tid)).findFirst().get();
+    }
+
     private boolean existingMoreThanOneTanks(Position pos) {
         return (getTankList().stream().filter(t -> pos.equals(t.getPos())).count() > 1);
     }
@@ -243,7 +308,7 @@ public class GameStateMachine {
         for (Player p : players.values()) {
             if (p.getTanks().stream().noneMatch(id -> tanks.containsKey(id) && !tanks.get(id).isDestroyed())) {
                 System.out.println("Player " + p.getName() + " loses all tanks!");
-                result =  true;
+                result = true;
             }
         }
         return result;

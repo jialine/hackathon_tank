@@ -242,6 +242,8 @@ public class GameStateMachineTest {
         orders.add(new TankOrder(2, "move", Direction.UP));
         orders.add(new TankOrder(3, "move", Direction.UP));
 
+        stateMachine.getPlayers().get("playerB").setTanks(Arrays.asList(new Integer[] { 2, 3 }));
+
         stateMachine.newOrders(orders);
 
         assertEquals(new Position(1, 1), tankA.getPos());
