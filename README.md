@@ -38,7 +38,7 @@ game engine of tank war for hackathon 2017
 6. 比赛最多进行t回合。如果t回合之前一方tank全部被击毁，游戏结束。
 
 ## 选手程序设计
-1. 参赛选手的程序需要实现src/main/resources/player.idl中定义的服务，并启动在9000端口上。
+1. 参赛选手的程序需要实现src/main/resources/player.idl中定义的服务，并启动在80端口上。
 2. 参赛选手需要自己订制docker容器，启动脚本为 /data/start.sh
 
 为了保证比赛的公平性以及区分度，组委会保留对以上描述中的变量（n,m,x,y,h,i,j,t）进行临时调整的权利。大致范围如下
