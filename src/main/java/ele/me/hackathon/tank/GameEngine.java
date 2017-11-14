@@ -163,7 +163,7 @@ public class GameEngine {
     }
 
     protected void reportResult(int round) {
-        String resUrl = env.get("WAR_CALLBAVK_URL");
+        String resUrl = env.get("WAR_CALLBACK_URL");
         HttpPost post = new HttpPost(resUrl);
         StringBuffer sb = new StringBuffer("{\n");
 
