@@ -1,6 +1,7 @@
 package ele.me.hackathon.tank;
 
 import ele.me.hackathon.tank.player.PlayerServer;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -164,6 +165,7 @@ public class GameEngine {
 
     protected void reportResult(int round) {
         String resUrl = env.get("WAR_CALLBACK_URL");
+        System.out.println("WAR_CALLBACK_URL=" + resUrl);
         HttpPost post = new HttpPost(resUrl);
         StringBuffer sb = new StringBuffer("{\n");
 
@@ -176,24 +178,28 @@ public class GameEngine {
 
         if (scores.get(playerAAddres) > scores.get(playerBAddres)) {
             System.out.println(playerAAddres + " wins the game!");
-            sb.append("\"result\":\"draw\",\n");
+            sb.append("\"result\":\"win\",\n");
             sb.append("\"win\":\"").append(playerAAddres).append("\"\n");
         } else if (scores.get(playerAAddres) == scores.get(playerBAddres)) {
             System.out.println("Draw game!");
-            sb.append("\"result\":\"draw\",\n");
+            sb.append("\"result\":\"draw\"\n");
         } else {
             System.out.println(playerBAddres + " wins the game!");
-            sb.append("\"result\":\"draw\",\n");
+            sb.append("\"result\":\"win\",\n");
             sb.append("\"win\":\"").append(playerBAddres).append("\"\n");
         }
         sb.append("}");
+        System.out.println(sb.toString());
         post.setEntity(new InputStreamEntity(new ByteArrayInputStream(sb.toString().getBytes())));
         CloseableHttpClient httpclient = HttpClients.createDefault();
         try {
-            httpclient.execute(post);
+            CloseableHttpResponse response = httpclient.execute(post);
+            System.out.println(response.toString());
         } catch (IOException e) {
+            System.out.println("Failed to send!");
             e.printStackTrace();
         }
+        System.out.println("done");
     }
 
     protected void checkGenerateFlag(int round) {
