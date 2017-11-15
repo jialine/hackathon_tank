@@ -112,6 +112,14 @@ public class GameEngineTest {
         engine.reportResult();
         assertTrue(postBody.contains("win"));
         assertTrue(postBody.contains("playerA"));
+    }
 
+    @Test
+    public void testGenerateTanks() {
+        for(int i = 1; i < 5; i++) {
+            engine.getGameOptions().setNoOfTanks(i);
+            Map<Integer, Tank> tanks = engine.generateTanks();
+            assertEquals(i*2, tanks.size());
+        }
     }
 }

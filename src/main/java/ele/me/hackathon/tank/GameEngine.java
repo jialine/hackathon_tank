@@ -58,6 +58,10 @@ public class GameEngine {
     void parseArgs(String[] args) {
         mapFile = args[0];
         int noOfTanks = Integer.parseInt(args[1]);
+        if (noOfTanks > 5) {
+            System.out.println("Max not of tanks is 5");
+            System.exit(-1);
+        }
         int tankSpeed = Integer.parseInt(args[2]);
         int shellSpeed = Integer.parseInt(args[3]);
         int tankHP = Integer.parseInt(args[4]);
@@ -98,19 +102,16 @@ public class GameEngine {
     }
 
     protected Map<Integer, Tank> generateTanks() {
+        Position[] burnPoss = new Position[] { new Position(1, 1), new Position(1, 2), new Position(2, 1), new Position(2, 2), new Position(1, 3) };
         Map<Integer, Tank> tanks = new LinkedHashMap<>();
-        int index = 0;
-        int mapsize = map.size();
-        int n = (int) Math.sqrt(gameOptions.getNoOfTanks());
-        for (int x = 1; x < n + 1; x++) {
-            for (int y = 1; y < n + 1; y++) {
-                index++;
-                tanks.put(index, new Tank(index, new Position(x, y), Direction.DOWN, getGameOptions().getTankSpeed(), getGameOptions().getShellSpeed(),
-                        getGameOptions().getTankHP()));
-                tanks.put(index + gameOptions.getNoOfTanks(),
-                        new Tank(index + gameOptions.getNoOfTanks(), new Position(mapsize - x - 1, mapsize - y - 1), Direction.UP,
-                                getGameOptions().getTankSpeed(), getGameOptions().getShellSpeed(), getGameOptions().getTankHP()));
-            }
+        int mapSize = map.size();
+        for (int i = 0; i < gameOptions.getNoOfTanks(); i++) {
+            Position pos = burnPoss[i];
+            tanks.put(i + 1,
+                    new Tank(i + 1, pos, Direction.DOWN, getGameOptions().getTankSpeed(), getGameOptions().getShellSpeed(), getGameOptions().getTankHP()));
+            tanks.put(i + 1 + gameOptions.getNoOfTanks(),
+                    new Tank(i + 1 + gameOptions.getNoOfTanks(), new Position(mapSize - pos.getX() - 1, mapSize - pos.getY() - 1), Direction.UP,
+                            getGameOptions().getTankSpeed(), getGameOptions().getShellSpeed(), getGameOptions().getTankHP()));
         }
         return tanks;
     }
