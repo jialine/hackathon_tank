@@ -61,6 +61,7 @@ public class PlayerInteract {
                     try {
                         GameState state = statusQueue.take();
                         System.out.println("Send state to " + getAddress() + " : " + PlayerInteract.toString(convert(state)));
+                        //System.out.println("Send state to " + getAddress() + " : " + Util.toJson(state));
                         client.latestState(convert(state));
                     } catch (TException e) {
                         e.printStackTrace();

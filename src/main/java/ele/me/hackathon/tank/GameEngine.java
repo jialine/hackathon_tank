@@ -16,6 +16,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.stream.Collectors;
 
@@ -26,14 +27,12 @@ public class GameEngine {
     private String mapFile;
     private GameMap map;
     private GameStateMachine stateMachine;
-    private Player playerA;
-    private Player playerB;
     private String playerAAddres;
     private String playerBAddres;
     private boolean flagGenerated = false;
     private int noOfFlagGenerated = 0;
 
-    private Map<String, PlayerServer.Client> clients;
+    private Map<String, PlayerServer.Client> clients = new ConcurrentHashMap<>();
     private Map<String, Player> players;
     private GameOptions gameOptions;
     private Environment env = new Environment();
@@ -74,7 +73,7 @@ public class GameEngine {
 
     private void startGame() throws TTransportException {
         initGameStateMachine();
-        this.clients = connectToPlayers();
+        connectToPlayers();
         play();
     }
 
@@ -146,7 +145,6 @@ public class GameEngine {
                 }
             });
 
-            orders.forEach(o -> System.out.println(o));
             stateMachine.newOrders(orders);
 
             if (stateMachine.gameOvered()) {
@@ -222,48 +220,73 @@ public class GameEngine {
         return new PlayerInteract(name, clients.get(name), map, players.get(name).getTanks(), this.gameOptions);
     }
 
-    private Map<String, PlayerServer.Client> connectToPlayers() {
-        boolean palyerAConnected = true;
-        boolean palyerBConnected = true;
-        Map<String, PlayerServer.Client> clients = new LinkedHashMap<>();
+    private class PlayerConnector implements Runnable {
+        private String name;
+
+        public PlayerConnector(String name) {
+            this.name = name;
+        }
+
+        @Override
+        public void run() {
+            for (int i = 0; i < 30; i++) {
+                try {
+                    clients.put(this.name, buildPlayerConnection(this.name));
+                    break;
+                } catch (TTransportException e) {
+                    System.out.println("Failed to connect to " + this.name);
+                    e.printStackTrace();
+                }
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+
+        }
+    }
+
+    private void connectToPlayers() {
+        Thread[] threads = new Thread[2];
+        threads[0] = new Thread(new PlayerConnector(playerAAddres));
+        threads[1] = new Thread(new PlayerConnector(playerBAddres));
+
+        threads[0].start();
+        threads[1].start();
         try {
-            clients.put(playerAAddres, buildPlayerConnection(playerAAddres));
-        } catch (TTransportException e) {
-            System.out.println("Failed to connect to " + playerAAddres);
+            threads[0].join();
+        } catch (InterruptedException e) {
             e.printStackTrace();
-            palyerAConnected = false;
         }
         try {
-            clients.put(playerBAddres, buildPlayerConnection(playerBAddres));
-        } catch (TTransportException e) {
-            System.out.println("Failed to connect to " + playerBAddres);
+            threads[1].join();
+        } catch (InterruptedException e) {
             e.printStackTrace();
-            palyerBConnected = false;
         }
-        if (palyerAConnected == false || palyerBConnected == false) {
-            if (palyerAConnected == false && palyerBConnected == false) {
+
+        if (this.clients.size() < 2) {
+
+            if (this.clients.size() == 0) {
                 result.setResult("draw");
                 result.setReason("Failed to connect to both players.");
-            } else if (palyerAConnected == false) {
+            } else {
                 result.setResult("win");
-                result.setWin(playerBAddres);
-                result.setReason("Failed to connect to " + playerAAddres);
-
-            } else if (palyerBConnected == false) {
-                result.setResult("win");
-                result.setWin(playerAAddres);
-                result.setReason("Failed to connect to " + playerBAddres);
-
+                String name = this.clients.keySet().stream().findFirst().get();
+                result.setWin(name);
+                result.setReason("Only connected to " + name);
             }
 
             System.out.println(Util.toJson(result));
             reportResult();
             System.exit(-1);
         }
-        return clients;
+
+        System.out.println("Succeed to connect to both player.");
     }
 
     private PlayerServer.Client buildPlayerConnection(String addr) throws TTransportException {
+        System.out.println("Connecting to " + addr);
         String host = addr.split(":")[0];
         int port = Integer.parseInt(addr.split(":")[1]);
         TSocket transport = new TSocket(host, port);
@@ -271,6 +294,7 @@ public class GameEngine {
         transport.setTimeout(getGameOptions().getRoundTimeout());
         TProtocol protocol = new TBinaryProtocol(transport);
         PlayerServer.Client client = new PlayerServer.Client(protocol);
+        System.out.println("Succeed to connect to  " + addr);
         return client;
     }
 

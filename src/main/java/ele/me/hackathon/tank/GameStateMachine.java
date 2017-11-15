@@ -298,7 +298,6 @@ public class GameStateMachine {
         playerState.setEnmeyFlagNo(getEnemyFlagNo(playerName));
         playerState.setFlagPos(getFlagPos());
 
-        System.out.println("________" + playerState);
         return playerState;
 
     }
