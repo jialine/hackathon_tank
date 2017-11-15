@@ -46,6 +46,8 @@ public class GameEngine {
     private GameOptions gameOptions;
     private Environment env = new Environment();
 
+    GameResult result = new GameResult();
+
     public static class Environment {
         public String get(String name) {
             return System.getenv(name);
@@ -62,7 +64,7 @@ public class GameEngine {
     public GameEngine() {
     }
 
-     void parseArgs(String[] args) {
+    void parseArgs(String[] args) {
         mapFile = args[0];
         noOfTanks = Integer.parseInt(args[1]);
         tankSpeed = Integer.parseInt(args[2]);
@@ -75,7 +77,7 @@ public class GameEngine {
         playerAAddres = args[9];
         playerBAddres = args[10];
         this.gameOptions = new GameOptions(noOfTanks, tankSpeed, shellSpeed, tankHP, tankScore, flagScore, maxRound, roundTimeout);
-        System.out.println("Parameters parsed. " + this.toString());
+        System.out.println("Parameters parsed. " + this.gameOptions);
     }
 
     private void startGame() throws TTransportException {
@@ -114,7 +116,8 @@ public class GameEngine {
                 index++;
                 tanks.put(index, new Tank(index, new Position(x, y), Direction.DOWN, tankSpeed, shellSpeed, tankHP));
                 tanks.put(index + gameOptions.getNoOfTanks(),
-                        new Tank(index + gameOptions.getNoOfTanks(), new Position(mapsize - x - 1, mapsize - y - 1), Direction.UP, tankSpeed, shellSpeed, tankHP));
+                        new Tank(index + gameOptions.getNoOfTanks(), new Position(mapsize - x - 1, mapsize - y - 1), Direction.UP, tankSpeed, shellSpeed,
+                                tankHP));
             }
         }
         return tanks;
@@ -160,15 +163,11 @@ public class GameEngine {
             checkGenerateFlag(round);
         }
 
-        reportResult(round);
+        calculateResult(round);
+        reportResult();
     }
 
-    protected void reportResult(int round) {
-        String resUrl = env.get("WAR_CALLBACK_URL");
-        System.out.println("WAR_CALLBACK_URL=" + resUrl);
-        HttpPost post = new HttpPost(resUrl);
-        StringBuffer sb = new StringBuffer("{\n");
-
+    void calculateResult(int round) {
         Map<String, Integer> scores;
         if (round < maxRound) {
             scores = stateMachine.countScore(tankScore, 0);
@@ -177,20 +176,25 @@ public class GameEngine {
         }
 
         if (scores.get(playerAAddres) > scores.get(playerBAddres)) {
-            System.out.println(playerAAddres + " wins the game!");
-            sb.append("\"result\":\"win\",\n");
-            sb.append("\"win\":\"").append(playerAAddres).append("\"\n");
+            result.setResult("win");
+            result.setWin(playerAAddres);
         } else if (scores.get(playerAAddres) == scores.get(playerBAddres)) {
-            System.out.println("Draw game!");
-            sb.append("\"result\":\"draw\"\n");
+            result.setResult("draw");
         } else {
-            System.out.println(playerBAddres + " wins the game!");
-            sb.append("\"result\":\"win\",\n");
-            sb.append("\"win\":\"").append(playerBAddres).append("\"\n");
+            result.setResult("win");
+            result.setWin(playerBAddres);
         }
-        sb.append("}");
-        System.out.println(sb.toString());
-        post.setEntity(new InputStreamEntity(new ByteArrayInputStream(sb.toString().getBytes())));
+        result.setState(playerAAddres + ": " + scores.get(playerAAddres) + "," + playerBAddres + ": " + scores.get(playerBAddres));
+
+        System.out.println("Game result: " + Util.toJson(result));
+    }
+
+    void reportResult() {
+        String resUrl = env.get("WAR_CALLBACK_URL");
+        System.out.println("WAR_CALLBACK_URL=" + resUrl);
+
+        HttpPost post = new HttpPost(resUrl);
+        post.setEntity(new InputStreamEntity(new ByteArrayInputStream(Util.toJson(result).getBytes())));
         CloseableHttpClient httpclient = HttpClients.createDefault();
         try {
             CloseableHttpResponse response = httpclient.execute(post);
@@ -199,7 +203,7 @@ public class GameEngine {
             System.out.println("Failed to send!");
             e.printStackTrace();
         }
-        System.out.println("done");
+        System.out.println("Result sent.");
     }
 
     protected void checkGenerateFlag(int round) {
@@ -225,10 +229,44 @@ public class GameEngine {
         return new PlayerInteract(name, clients.get(name), map, players.get(name).getTanks(), this.gameOptions);
     }
 
-    private Map<String, PlayerServer.Client> connectToPlayers() throws TTransportException {
+    private Map<String, PlayerServer.Client> connectToPlayers() {
+        boolean palyerAConnected = true;
+        boolean palyerBConnected = true;
         Map<String, PlayerServer.Client> clients = new LinkedHashMap<>();
-        clients.put(playerAAddres, buildPlayerConnection(playerAAddres));
-        clients.put(playerBAddres, buildPlayerConnection(playerBAddres));
+        try {
+            clients.put(playerAAddres, buildPlayerConnection(playerAAddres));
+        } catch (TTransportException e) {
+            System.out.println("Failed to connect to " + playerAAddres);
+            e.printStackTrace();
+            palyerAConnected = false;
+        }
+        try {
+            clients.put(playerBAddres, buildPlayerConnection(playerBAddres));
+        } catch (TTransportException e) {
+            System.out.println("Failed to connect to " + playerBAddres);
+            e.printStackTrace();
+            palyerBConnected = false;
+        }
+        if (palyerAConnected == false || palyerBConnected == false) {
+            if (palyerAConnected == false && palyerBConnected == false) {
+                result.setResult("draw");
+                result.setReason("Failed to connect to both players.");
+            } else if (palyerAConnected == false) {
+                result.setResult("win");
+                result.setWin(playerBAddres);
+                result.setReason("Failed to connect to " + playerAAddres);
+
+            } else if (palyerBConnected == false) {
+                result.setResult("win");
+                result.setWin(playerAAddres);
+                result.setReason("Failed to connect to " + playerBAddres);
+
+            }
+
+            System.out.println(Util.toJson(result));
+            reportResult();
+            System.exit(-1);
+        }
         return clients;
     }
 

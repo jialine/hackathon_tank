@@ -103,11 +103,13 @@ public class GameEngineTest {
                 return "http://localhost:" + localport;
             }
         });
-        engine.reportResult(100);
+        engine.calculateResult(100);
+        engine.reportResult();
         assertTrue(postBody.contains("draw"));
 
         players.get("playerA").captureFlag();
-        engine.reportResult(100);
+        engine.calculateResult(100);
+        engine.reportResult();
         assertTrue(postBody.contains("win"));
         assertTrue(postBody.contains("playerA"));
 
