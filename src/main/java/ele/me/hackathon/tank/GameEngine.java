@@ -23,19 +23,11 @@ import java.util.stream.Collectors;
  * Created by lanjiangang on 27/10/2017.
  */
 public class GameEngine {
+    private String mapFile;
+    private GameMap map;
     private GameStateMachine stateMachine;
     private Player playerA;
     private Player playerB;
-    private int maxRound;
-    private String mapFile;
-    private GameMap map;
-    private int noOfTanks;
-    private int tankSpeed;
-    private int shellSpeed;
-    private int tankHP;
-    private int tankScore;
-    private int flagScore;
-    private int roundTimeout;
     private String playerAAddres;
     private String playerBAddres;
     private boolean flagGenerated = false;
@@ -66,14 +58,14 @@ public class GameEngine {
 
     void parseArgs(String[] args) {
         mapFile = args[0];
-        noOfTanks = Integer.parseInt(args[1]);
-        tankSpeed = Integer.parseInt(args[2]);
-        shellSpeed = Integer.parseInt(args[3]);
-        tankHP = Integer.parseInt(args[4]);
-        tankScore = Integer.parseInt(args[5]);
-        flagScore = Integer.parseInt(args[6]);
-        maxRound = Integer.parseInt(args[7]);
-        roundTimeout = Integer.parseInt(args[8]);
+        int noOfTanks = Integer.parseInt(args[1]);
+        int tankSpeed = Integer.parseInt(args[2]);
+        int shellSpeed = Integer.parseInt(args[3]);
+        int tankHP = Integer.parseInt(args[4]);
+        int tankScore = Integer.parseInt(args[5]);
+        int flagScore = Integer.parseInt(args[6]);
+        int maxRound = Integer.parseInt(args[7]);
+        int roundTimeout = Integer.parseInt(args[8]);
         playerAAddres = args[9];
         playerBAddres = args[10];
         this.gameOptions = new GameOptions(noOfTanks, tankSpeed, shellSpeed, tankHP, tankScore, flagScore, maxRound, roundTimeout);
@@ -99,10 +91,10 @@ public class GameEngine {
     private Map<String, Player> assignTankToPlayers(Map<Integer, Tank> tanks) {
         Map<String, Player> players = new LinkedHashMap<>();
 
-        players.put(playerAAddres,
-                new Player(playerAAddres, tanks.keySet().stream().filter(id -> id <= noOfTanks).collect(Collectors.toCollection(LinkedList::new))));
-        players.put(playerBAddres,
-                new Player(playerBAddres, tanks.keySet().stream().filter(id -> id > noOfTanks).collect(Collectors.toCollection(LinkedList::new))));
+        players.put(playerAAddres, new Player(playerAAddres,
+                tanks.keySet().stream().filter(id -> id <= getGameOptions().getNoOfTanks()).collect(Collectors.toCollection(LinkedList::new))));
+        players.put(playerBAddres, new Player(playerBAddres,
+                tanks.keySet().stream().filter(id -> id > getGameOptions().getNoOfTanks()).collect(Collectors.toCollection(LinkedList::new))));
         return players;
     }
 
@@ -114,10 +106,11 @@ public class GameEngine {
         for (int x = 1; x < n + 1; x++) {
             for (int y = 1; y < n + 1; y++) {
                 index++;
-                tanks.put(index, new Tank(index, new Position(x, y), Direction.DOWN, tankSpeed, shellSpeed, tankHP));
+                tanks.put(index, new Tank(index, new Position(x, y), Direction.DOWN, getGameOptions().getTankSpeed(), getGameOptions().getShellSpeed(),
+                        getGameOptions().getTankHP()));
                 tanks.put(index + gameOptions.getNoOfTanks(),
-                        new Tank(index + gameOptions.getNoOfTanks(), new Position(mapsize - x - 1, mapsize - y - 1), Direction.UP, tankSpeed, shellSpeed,
-                                tankHP));
+                        new Tank(index + gameOptions.getNoOfTanks(), new Position(mapsize - x - 1, mapsize - y - 1), Direction.UP,
+                                getGameOptions().getTankSpeed(), getGameOptions().getShellSpeed(), getGameOptions().getTankHP()));
             }
         }
         return tanks;
@@ -136,7 +129,7 @@ public class GameEngine {
         //send a singal tp upload map and tank list
         stateQueues.values().forEach(q -> q.offer(new GameState("fakeState")));
         int round = 0;
-        for (; round < maxRound; round++) {
+        for (; round < getGameOptions().getMaxRound(); round++) {
             System.out.println("Round " + round);
             //clear the command queue to prevent previous dirty command left in the queue
             tankOrderQueues.values().forEach(q -> q.clear());
@@ -169,10 +162,10 @@ public class GameEngine {
 
     void calculateResult(int round) {
         Map<String, Integer> scores;
-        if (round < maxRound) {
-            scores = stateMachine.countScore(tankScore, 0);
+        if (round < getGameOptions().getMaxRound()) {
+            scores = stateMachine.countScore(getGameOptions().getTankScore(), 0);
         } else {
-            scores = stateMachine.countScore(tankScore, flagScore);
+            scores = stateMachine.countScore(getGameOptions().getTankScore(), getGameOptions().getFlagScore());
         }
 
         if (scores.get(playerAAddres) > scores.get(playerBAddres)) {
@@ -275,7 +268,7 @@ public class GameEngine {
         int port = Integer.parseInt(addr.split(":")[1]);
         TSocket transport = new TSocket(host, port);
         transport.open();
-        transport.setTimeout(roundTimeout);
+        transport.setTimeout(getGameOptions().getRoundTimeout());
         TProtocol protocol = new TBinaryProtocol(transport);
         PlayerServer.Client client = new PlayerServer.Client(protocol);
         return client;
