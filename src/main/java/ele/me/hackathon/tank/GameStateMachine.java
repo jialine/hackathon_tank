@@ -35,12 +35,20 @@ public class GameStateMachine {
         printReplayLog();
     }
 
-    private void printReplayLog() {
+    public void printReplayLog() {
         StringBuffer sb = new StringBuffer("ReplayLog: {");
         generateTanksLog(sb);
         generateShellsLog(sb);
+        generateFlagLog(sb);
         sb.append("}");
         System.out.println(sb.toString());
+    }
+
+    private void generateFlagLog(StringBuffer sb) {
+        if (flagPos != null) {
+            sb.append(",flag: {");
+            sb.append("position:{x:").append(flagPos.getX()).append(",y:").append(flagPos.getY()).append("}}");
+        }
     }
 
     private void generateShellsLog(StringBuffer sb) {
@@ -208,6 +216,7 @@ public class GameStateMachine {
             });
 
             tanksToMove.removeIf(t -> t.isDestroyed());
+            printReplayLog();
             clearDestroyedTargets();
         }
     }

@@ -59,7 +59,7 @@ public class GameEngine {
         mapFile = args[0];
         int noOfTanks = Integer.parseInt(args[1]);
         if (noOfTanks > 5) {
-            System.out.println("Max not of tanks is 5");
+            System.out.println("Max no of tanks is 5");
             System.exit(-1);
         }
         int tankSpeed = Integer.parseInt(args[2]);
@@ -125,6 +125,9 @@ public class GameEngine {
                 .collect(Collectors.toMap(PlayerInteract::getAddress, act -> act.getStatusQueue()));
 
         actors.forEach(act -> act.start());
+
+        //print the init state
+        stateMachine.printReplayLog();
 
         //send a singal tp upload map and tank list
         stateQueues.values().forEach(q -> q.offer(new GameState("fakeState")));
