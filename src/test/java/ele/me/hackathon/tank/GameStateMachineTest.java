@@ -21,7 +21,7 @@ public class GameStateMachineTest {
 
     @BeforeClass
     public static void beforeClass() throws IOException {
-        map = GameMap.load(GameStateMachineTest.class.getResourceAsStream("/samplemap.txt"));
+        map = MapFactory.getMap();
     }
 
     @Before

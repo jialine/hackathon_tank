@@ -35,7 +35,7 @@ public class GameEngineTest {
 
     @BeforeClass
     public static void beforeClass() throws Exception {
-        map = GameMap.load(GameStateMachineTest.class.getResourceAsStream("/samplemap.txt"));
+        map = MapFactory.getMap();
         server = ServerBootstrap.bootstrap().setListenerPort(0).registerHandler("*", new HttpRequestHandler() {
             @Override
             public void handle(HttpRequest request, HttpResponse response, HttpContext context) throws HttpException, IOException {

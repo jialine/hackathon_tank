@@ -83,6 +83,7 @@ public class GameEngine {
 
     private void initGameStateMachine() {
         map = loadMap(mapFile);
+        printMap(map);
         Map<Integer, Tank> tanks = generateTanks();
         this.players = assignTankToPlayers(tanks);
 
@@ -91,13 +92,27 @@ public class GameEngine {
         stateMachine.setPlayers(players);
     }
 
+    private void printMap(GameMap map) {
+        StringBuilder sb = new StringBuilder("const MAP_1 = '");
+        for(int[] line : map.getPixels()) {
+            for(int p : line) {
+                sb.append(p).append(" ");
+            }
+            sb.deleteCharAt(sb.length() - 1);
+            sb.append("\n");
+        }
+        sb.deleteCharAt(sb.length() - 1);
+        sb.append("'");
+        System.out.println(sb.toString());
+    }
+
     private Map<String, Player> assignTankToPlayers(Map<Integer, Tank> tanks) {
         Map<String, Player> players = new LinkedHashMap<>();
 
         players.put(playerAAddres, new Player(playerAAddres,
                 tanks.keySet().stream().filter(id -> id <= getGameOptions().getNoOfTanks()).collect(Collectors.toCollection(LinkedList::new))));
-        players.put(playerBAddres, new Player(playerBAddres,
-                tanks.keySet().stream().filter(id -> id > getGameOptions().getNoOfTanks()).collect(Collectors.toCollection(LinkedList::new))));
+        players.put(playerBAddres,
+                new Player(playerBAddres, tanks.keySet().stream().filter(id -> id > getGameOptions().getNoOfTanks()).collect(Collectors.toCollection(LinkedList::new))));
         return players;
     }
 
