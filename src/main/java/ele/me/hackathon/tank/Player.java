@@ -28,8 +28,8 @@ public class Player {
         return noOfFlag;
     }
 
-    public void captureFlag() {
-        System.out.println(name + " captures a flag.");
+    public void captureFlag(Tank t) {
+        System.out.println(name + " captures a flag by tank :" + t);
         this.noOfFlag++;
     }
 

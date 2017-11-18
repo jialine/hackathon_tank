@@ -107,7 +107,7 @@ public class GameEngineTest {
         engine.reportResult();
         assertTrue(postBody.contains("draw"));
 
-        players.get("playerA").captureFlag();
+        players.get("playerA").captureFlag(null);
         engine.calculateResult(100);
         engine.reportResult();
         assertTrue(postBody.contains("win"));

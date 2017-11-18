@@ -201,11 +201,7 @@ public class GameStateMachine {
             withdrawUntilNoOverlap(tanksToMove);
 
             //check flag
-            tanksToMove.stream().filter(t -> getFlagPos() != null && flagPos.equals(t.getPos())).forEach(t -> {
-                flagPos = null;
-                Player p = getPlayer(t);
-                p.captureFlag();
-            });
+            checkFlag();
 
             //check shells
             tanksToMove.stream().forEach(t -> {
@@ -220,6 +216,14 @@ public class GameStateMachine {
             clearDestroyedTargets();
         }
     }
+
+     public void checkFlag() {
+         getTankList().stream().filter(t -> getFlagPos() != null && flagPos.equals(t.getPos())).forEach(t -> {
+             flagPos = null;
+             Player p = getPlayer(t);
+             p.captureFlag(t);
+         });
+     }
 
     private boolean hasFace2FaceTank(Tank t, List<Tank> tanksToMove) {
         Position nextPos = t.getPos().moveOneStep(t.getDir());
@@ -278,6 +282,8 @@ public class GameStateMachine {
     public Position generateFlag() {
         flagPos = new Position(map.size() / 2, map.size() / 2);
         System.out.println("Generate flag at " + flagPos);
+        //check if there is a tank just stays on the same position.
+        checkFlag();
         return flagPos;
     }
 

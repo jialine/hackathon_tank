@@ -333,6 +333,18 @@ public class GameStateMachineTest {
     }
 
     @Test
+    public void testGenerateFlag() {
+        Position flagPos = new Position(map.size() / 2, map.size() / 2);
+        tankA.moveTo(flagPos);
+        assertEquals(null, stateMachine.getFlagPos());
+        assertEquals(0, stateMachine.getFlagNoByPlayer("playerA"));
+
+        stateMachine.generateFlag();
+        assertEquals(1, stateMachine.getFlagNoByPlayer("playerA"));
+
+    }
+
+    @Test
     public void reportState() {
         //move tankA to wood
         tankA.moveTo(new Position(16, 1));
