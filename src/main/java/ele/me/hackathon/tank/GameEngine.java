@@ -15,6 +15,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -45,11 +46,14 @@ public class GameEngine {
         }
     }
 
-    public static void main(String[] args) throws TTransportException {
-
+    public static void main(String[] args) throws TTransportException, InterruptedException {
+        System.out.println("Game starts at " + LocalDateTime.now());
         GameEngine engine = new GameEngine();
         engine.parseArgs(args);
         engine.startGame();
+        System.out.println("Game ends at " + LocalDateTime.now());
+        //do not exit the main thread cause the judge process needs me to alive
+        Thread.sleep(1000 * 60 * 10);
     }
 
     public GameEngine() {
@@ -248,7 +252,7 @@ public class GameEngine {
 
         @Override
         public void run() {
-            for (int i = 0; i < 30; i++) {
+            for (int i = 0; i < 300; i++) {
                 try {
                     clients.put(this.name, buildPlayerConnection(this.name));
                     break;
@@ -274,12 +278,12 @@ public class GameEngine {
         threads[0].start();
         threads[1].start();
         try {
-            threads[0].join();
+            threads[0].join(5*60*1000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
         try {
-            threads[1].join();
+            threads[1].join(5*60*1000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -298,6 +302,13 @@ public class GameEngine {
 
             System.out.println(Util.toJson(result));
             reportResult();
+            //do not exit the main thread cause the judge process needs me to alive
+            try {
+                Thread.sleep(1000 * 60 * 10);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
             System.exit(-1);
         }
 
