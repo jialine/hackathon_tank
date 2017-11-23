@@ -271,6 +271,7 @@ public class GameEngine {
     }
 
     private void connectToPlayers() {
+        
         Thread[] threads = new Thread[2];
         threads[0] = new Thread(new PlayerConnector(playerAAddres));
         threads[1] = new Thread(new PlayerConnector(playerBAddres));
@@ -278,12 +279,12 @@ public class GameEngine {
         threads[0].start();
         threads[1].start();
         try {
-            threads[0].join(5*60*1000);
+            threads[0].join(60*1000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
         try {
-            threads[1].join(5*60*1000);
+            threads[1].join(60*1000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
