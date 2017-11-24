@@ -177,6 +177,9 @@ public class GameEngine {
             checkGenerateFlag(round);
         }
 
+        //print the final state
+        stateMachine.printReplayLog();
+
         calculateResult(round);
         reportResult();
     }

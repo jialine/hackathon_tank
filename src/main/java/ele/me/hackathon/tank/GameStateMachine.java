@@ -17,6 +17,7 @@ public class GameStateMachine {
     private GameOptions options;
     private List<Tank> destroyedTanks = new LinkedList<>();
     private List<Shell> destroyedShells = new LinkedList<>();
+    private int replayStep = 1;
 
     public GameStateMachine(Map<Integer, Tank> tanks, GameMap map) {
         this.tanks = tanks;
@@ -32,10 +33,11 @@ public class GameStateMachine {
         evaluateTurnDirectionActions(filtOrder(orders, "turnTo"));
         evaluateMoveActions(filtOrder(orders, "move"));
 
-        printReplayLog();
     }
 
     public void printReplayLog() {
+        System.out.println("ReplayStep " + replayStep++);
+
         StringBuffer sb = new StringBuffer("ReplayLog: {");
         generateTanksLog(sb);
         generateShellsLog(sb);
@@ -122,6 +124,7 @@ public class GameStateMachine {
                 destroyedShells.add(shell);
             return shell.isDestroyed();
         });
+        printReplayLog();
     }
 
     private LinkedList<TankOrder> filtOrder(List<TankOrder> orders, String orderName) {
@@ -212,7 +215,6 @@ public class GameStateMachine {
             });
 
             tanksToMove.removeIf(t -> t.isDestroyed());
-            printReplayLog();
             clearDestroyedTargets();
         }
     }
