@@ -63,9 +63,7 @@ public class PlayerInteract {
                         System.out.println("Send state to " + getAddress() + " : " + PlayerInteract.toString(convert(state)));
                         //System.out.println("Send state to " + getAddress() + " : " + Util.toJson(state));
                         client.latestState(convert(state));
-                    } catch (TException e) {
-                        e.printStackTrace();
-                    } catch (InterruptedException e) {
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
 
@@ -77,7 +75,7 @@ public class PlayerInteract {
                             tankOrders = new LinkedList<>();
                         }
                         commandQueue.offer(tankOrders);
-                    } catch (TException e) {
+                    } catch (Exception e) {
                         e.printStackTrace();
                         commandQueue.offer(new LinkedList<>());
                     }
@@ -162,6 +160,9 @@ public class PlayerInteract {
     }
 
     private Direction convertDir(ele.me.hackathon.tank.player.Direction dir) {
+        if(dir == null)
+            return null;
+        
         return Direction.findByValue(dir.getValue());
     }
 
