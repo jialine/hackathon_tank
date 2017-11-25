@@ -95,7 +95,7 @@ public class PlayerInteract {
             return false;
         }
 
-        if (tankOrders.stream().filter(TankOrder::isValid).count() > 0) {
+        if (tankOrders.stream().filter(o -> !TankOrder.isValid(o)).count() > 0) {
             System.out.println(address + " has invalid orders");
             return false;
         }
