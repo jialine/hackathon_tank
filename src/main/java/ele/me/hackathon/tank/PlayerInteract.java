@@ -71,7 +71,7 @@ public class PlayerInteract {
                         List<Order> orders = client.getNewOrders();
                         System.out.println("Recv orders from " + getAddress() + " : " + PlayerInteract.toString(orders));
                         List<TankOrder> tankOrders = convertOrders(orders);
-                        if(!verifyPlayerInput(tankOrders)) {
+                        if (!verifyPlayerInput(tankOrders)) {
                             tankOrders = new LinkedList<>();
                         }
                         commandQueue.offer(tankOrders);
@@ -92,6 +92,11 @@ public class PlayerInteract {
         }
         if (tankOrders.stream().map(TankOrder::getTankId).collect(Collectors.toSet()).size() < tankOrders.size()) {
             System.out.println(address + " has duplicate orders");
+            return false;
+        }
+
+        if (tankOrders.stream().filter(o -> !TankOrder.isValid(o)).count() > 0) {
+            System.out.println(address + " has invalid orders");
             return false;
         }
         return true;
@@ -115,7 +120,7 @@ public class PlayerInteract {
         res.setShells(convertShells(state.getShells()));
         res.setYourFlagNo(state.getYourFlagNo());
         res.setEnemyFlagNo(state.getEnmeyFlagNo());
-        if(state.getFlagPos() != null) {
+        if (state.getFlagPos() != null) {
             res.setFlagPos(convertPosition(state.getFlagPos()));
         }
         return res;
@@ -160,9 +165,9 @@ public class PlayerInteract {
     }
 
     private Direction convertDir(ele.me.hackathon.tank.player.Direction dir) {
-        if(dir == null)
+        if (dir == null)
             return null;
-        
+
         return Direction.findByValue(dir.getValue());
     }
 
@@ -223,7 +228,7 @@ public class PlayerInteract {
         sb.append(state.getYourFlagNo());
         sb.append(",enemyFlags:");
         sb.append(state.getEnemyFlagNo());
-        if(state.isSetFlagPos()) {
+        if (state.isSetFlagPos()) {
             sb.append(",flagPos:");
             sb.append(state.getFlagPos());
         }
